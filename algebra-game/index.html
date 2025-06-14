@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find the Missing Number! 🍎</title>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple sound effects (optional, but consistent with others) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for easy theme changes (Consistent with other games) */
+        :root {
+            --primary-bg: #FFF0F5; /* Lavender Blush - soft, playful */
+            --secondary-bg: #FFFFFF; /* White */
+            --text-color: #333333; /* Dark Grey */
+            --button-bg: #FFB6C1; /* Light Pink - cheerful */
+            --button-hover-bg: #FF69B4; /* Hot Pink - vibrant hover */
+            --success-color: #32CD32; /* Lime Green - lively success */
+            --error-color: #FF6347; /* Tomato - clear error */
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-radius: 15px;
+            --font-family: 'Inter', sans-serif; /* Using Inter for consistency */
+
+            /* Game specific elements */
+            --problem-box-bg: #E0FFFF; /* Light Cyan */
+            --apple-emoji-font-size: 1.8em; /* For the apple emoji variable */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 12px 25px var(--shadow-color);
+            padding: 35px;
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 15px;
+            font-size: 2.8em;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .wallet-board {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 10px;
+        }
+
+        /* --- Game Screen Specific Styles --- */
+        .algebra-area { /* Renamed from original .puzzle area for consistency with Algebra Adventures */
+            background-color: var(--problem-box-bg);
+            border-radius: 10px;
+            padding: 25px;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            border: 2px solid var(--button-bg);
+        }
+
+        .algebra-instruction { /* Renamed from original #instruction */
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2F4F4F;
+            margin-bottom: 20px;
+        }
+
+        .problem-display { /* Renamed from original .equation */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-size: 3em; /* Larger for easy reading */
+            font-weight: bold;
+            color: #4682B4; /* Steel Blue */
+        }
+        .problem-display .variable-emoji-placeholder { /* New span for the apple emoji */
+            font-size: var(--apple-emoji-font-size);
+        }
+        .problem-display .number-value {
+            font-size: 1em; /* Keep number relative to problem-display font-size */
+            padding: 0 5px;
+        }
+        .problem-display .operator {
+            font-size: 0.8em; /* Slightly smaller operators */
+        }
+
+
+        .answer-options { /* Renamed from original .choices */
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .answer-button { /* Renamed from original .choices button */
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .answer-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .answer-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .next-puzzle-button { /* Renamed from original #newPuzzle */
+            background-color: #6A5ACD; /* Slate Blue */
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+            display: none; /* Hidden until answer is given */
+        }
+
+        .next-puzzle-button:hover {
+            background-color: #483D8B; /* Darker Slate Blue */
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        /* --- Shared Screen Button Styles (Start/Play Again) --- */
+        .start-button, .play-again-button {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 18px 35px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+        }
+
+        .start-button:hover, .play-again-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        /* --- Feedback Message Styles --- */
+        .feedback-message { /* Renamed from original #feedback */
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 25px 35px;
+            border-radius: var(--border-radius);
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--secondary-bg);
+            box-shadow: 0 8px 20px var(--shadow-color);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            min-width: 250px;
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .feedback-message.correct {
+            background-color: var(--success-color);
+        }
+
+        .feedback-message.incorrect {
+            background-color: var(--error-color);
+        }
+
+        /* Responsive adjustments (Consistent with other games) */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 25px;
+                max-width: 100%;
+                gap: 15px;
+            }
+            h1 {
+                font-size: 2.2em;
+            }
+            .wallet-board {
+                font-size: 1.1em;
+            }
+            .algebra-area {
+                padding: 20px;
+                min-height: 150px;
+            }
+            .algebra-instruction {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+            .problem-display {
+                font-size: 2.5em;
+                gap: 10px;
+            }
+            .problem-display .variable-emoji-placeholder {
+                font-size: 1.5em;
+            }
+            .answer-options {
+                gap: 10px;
+                margin-top: 20px;
+            }
+            .answer-button {
+                padding: 12px 25px;
+                font-size: 1.6em;
+            }
+            .next-puzzle-button {
+                font-size: 1.3em;
+                padding: 12px 25px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.6em;
+                padding: 15px 30px;
+            }
+            .feedback-message {
+                font-size: 2em;
+                padding: 20px 30px;
+                min-width: 200px;
+            }
+        }
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 15px;
+                gap: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .wallet-board {
+                font-size: 1em;
+            }
+            .algebra-area {
+                padding: 15px;
+                min-height: 120px;
+            }
+            .algebra-instruction {
+                font-size: 1.1em;
+                margin-bottom: 10px;
+            }
+            .problem-display {
+                font-size: 2em;
+                gap: 8px;
+            }
+            .problem-display .variable-emoji-placeholder {
+                font-size: 1.2em;
+            }
+            .answer-options {
+                gap: 8px;
+                margin-top: 15px;
+            }
+            .answer-button {
+                padding: 10px 20px;
+                font-size: 1.4em;
+            }
+            .next-puzzle-button {
+                font-size: 1.1em;
+                padding: 10px 20px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.4em;
+                padding: 12px 25px;
+            }
+            .feedback-message {
+                font-size: 1.8em;
+                padding: 15px 25px;
+                min-width: 150px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="gameContainer">
+        <h1>🍎 Find the Missing Number! 🍎</h1>
+        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p style="font-size: 1.2em; text-align: center;">Let's find the missing number to make the equation true!</p>
+            <button class="start-button" id="startButton">Start Puzzle!</button>
+        </div>
+
+        <!-- Game Screen (initially hidden) -->
+        <div id="gameScreen" style="display: none; flex-direction: column; align-items: center;">
+            <div class="algebra-area" id="algebraArea">
+                <div class="algebra-instruction" id="instruction"></div>
+                <div class="problem-display" id="puzzle"></div>
+            </div>
+
+            <div class="answer-options" id="choices"></div>
+
+            <button class="next-puzzle-button" id="newPuzzle">Next Puzzle!</button>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- Play Again Screen (initially hidden) -->
+        <div id="playAgainScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p id="finalWalletMessage" style="font-size: 1.5em; font-weight: bold;"></p>
+            <button class="play-again-button" id="playAgainButton">Play Again!</button>
+        </div>
+
+  <script>
+    // Game State Variables (Added for consistency)
+    let wallet = 0;
+    const moneyPerCorrectAnswer = 5.00;
+    const moneyPerIncorrectAnswer = 2.00;
+    let roundCount = 0;
+    const totalRounds = 10; // Total rounds before game ends
+
+    // Get DOM elements (Updated IDs for consistency and easier handling)
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const playAgainScreen = document.getElementById('playAgainScreen');
+    const walletDisplay = document.getElementById('wallet');
+    const feedbackMessage = document.getElementById('feedbackMessage'); // Now controls overall feedback div
+    const finalWalletMessage = document.getElementById('finalWalletMessage');
+    const startButton = document.getElementById('startButton');
+    const playAgainButton = document.getElementById('playAgainButton');
+
+    // Renamed elements to match "Algebra Adventures" structure for consistency
+    const algebraArea = document.getElementById('algebraArea');
+    const instructionDisplay = document.getElementById('instruction'); // Instruction text
+    const puzzleDisplay = document.getElementById('puzzle'); // Equation display
+    const choicesContainer = document.getElementById('choices'); // Answer buttons container
+    const nextPuzzleBtn = document.getElementById('newPuzzle'); // "New Puzzle" button
+
+    // Tone.js for sounds
+    const correctSound = new Tone.Synth().toDestination();
+    const incorrectSound = new Tone.Synth().toDestination();
+    const winSound = new Tone.MembraneSynth().toDestination();
+    correctSound.oscillator.type = "sine";
+    incorrectSound.oscillator.type = "sawtooth";
+    winSound.octaves = 10;
+    winSound.pitchDecay = 0.05;
+
+    function playCorrectSound() { correctSound.triggerAttackRelease("C5", "8n"); }
+    function playIncorrectSound() { incorrectSound.triggerAttackRelease("C3", "8n"); }
+    function playWinSound() { winSound.triggerAttackRelease("C4", "2n"); }
+
+    function generatePuzzle() {
+        if (roundCount >= totalRounds) {
+            endGame();
+            return;
+        }
+
+        // Clear feedback message
+        feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+        nextPuzzleBtn.style.display = 'none'; // Hide next puzzle button until answer
+
+      // Generate numbers for a + b = c, where 'a' is the result and 'b' is the unknown
+      // Aim for 'total' (the sum or starting number) between 6 and 10.
+      const total = Math.floor(Math.random() * 6) + 5; // total will be 5 to 10
+      const knownPart = Math.floor(Math.random() * (total - 1)) + 1; // knownPart will be 1 to total-1
+      const missingPart = total - knownPart; // missingPart will be at least 1
+
+      const puzzleType = Math.random();
+      let equationHtml, correctAnswer;
+        let instructionText;
+
+      if (puzzleType < 0.33) { // Addition: 🍎 + known = total
+        equationHtml = `<span class="variable-emoji-placeholder">🍎</span> <span class="operator">+</span> <span class="number-value">${knownPart}</span> <span class="operator">=</span> <span class="number-value">${total}</span>`;
+        correctAnswer = missingPart;
+        instructionText = "How many 🍎 are needed at the start?";
+      } else if (puzzleType < 0.66) { // Addition: known + 🍎 = total
+        equationHtml = `<span class="number-value">${knownPart}</span> <span class="operator">+</span> <span class="variable-emoji-placeholder">🍎</span> <span class="operator">=</span> <span class="number-value">${total}</span>`;
+        correctAnswer = missingPart;
+        instructionText = "How many 🍎 are added?";
+      } else { // Subtraction: total - 🍎 = knownPart
+          // Ensure subtrahend (🍎) is positive and makes sense
+          // The `missingPart` is actually `total - knownPart`, which is `b` in `A - B = C`.
+          // So `🍎` here will represent `missingPart`.
+          const subtrahend = missingPart; 
+          equationHtml = `<span class="number-value">${total}</span> <span class="operator">-</span> <span class="variable-emoji-placeholder">🍎</span> <span class="operator">=</span> <span class="number-value">${knownPart}</span>`;
+          correctAnswer = subtrahend;
+          instructionText = "How many 🍎 were taken away?";
+      }
+
+      puzzleDisplay.innerHTML = equationHtml; // Set innerHTML to parse spans
+      instructionDisplay.textContent = instructionText;
+
+      // Generate 3 random wrong answers
+      let choices = new Set([correctAnswer]);
+      while (choices.size < 4) {
+        const wrong = Math.floor(Math.random() * 9) + 1; // Generate numbers from 1 to 9
+        
+        // Ensure wrong answers are distinct and within a reasonable range for this problem
+        if (wrong !== correctAnswer && wrong > 0) {
+            // For subtraction, ensure the wrong answer won't lead to a negative result if it were the unknown
+            if (equationHtml.includes('- <span class="variable-emoji-placeholder">🍎</span>')) { // It's a subtraction problem A - ? = C
+                const firstNum = parseInt(puzzleDisplay.querySelector('.number-value').textContent); // Get the first number
+                if ((firstNum - wrong) >= 0) { // Check if firstNum minus wrong answer is non-negative
+                    choices.add(wrong);
+                }
+            } else { // It's an addition problem
+                choices.add(wrong);
+            }
+        }
+      }
+
+      // Shuffle the choices
+      const shuffledChoices = Array.from(choices).sort(() => 0.5 - Math.random());
+
+      // Display buttons
+      choicesContainer.innerHTML = '';
+      shuffledChoices.forEach(num => {
+        const btn = document.createElement("button");
+        btn.textContent = num;
+        btn.className = 'answer-button'; // Apply consistent button class
+        btn.onclick = () => checkAnswer(num, correctAnswer);
+        choicesContainer.appendChild(btn);
+      });
+        enableAnswerButtons(); // Ensure buttons are enabled for new round
+    }
+
+    function checkAnswer(selected, correct) {
+        disableAnswerButtons(); // Prevent multiple clicks
+
+      if (selected === correct) {
+        feedbackMessage.textContent = "🎉 Great job! That's correct!";
+        feedbackMessage.classList.add('show', 'correct');
+        playCorrectSound();
+        wallet += moneyPerCorrectAnswer;
+        
+        // Replace the apple with the correct number
+        const applePlaceholder = puzzleDisplay.querySelector('.variable-emoji-placeholder');
+        if (applePlaceholder) {
+            applePlaceholder.textContent = correct;
+            // Use getComputedStyle for correct CSS variable access
+            applePlaceholder.style.color = getComputedStyle(document.documentElement).getPropertyValue('--text-color');
+            applePlaceholder.style.fontSize = '1em'; // Revert to normal size for number
+        }
+
+      } else {
+        feedbackMessage.textContent = "🙈 Oops! Try again!";
+        feedbackMessage.classList.add('show', 'incorrect');
+        playIncorrectSound();
+        wallet = Math.max(0, wallet - moneyPerIncorrectAnswer);
+        enableAnswerButtons(); // Re-enable for another try if incorrect
+      }
+        walletDisplay.textContent = wallet.toFixed(2); // Update wallet
+
+        // Hide feedback after a short delay
+        setTimeout(() => {
+            feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+            if (selected === correct) {
+                nextPuzzleBtn.style.display = 'block'; // Show next puzzle button on correct answer
+            }
+        }, 1500);
+    }
+
+    // Helper functions for button state
+    function disableAnswerButtons() {
+        document.querySelectorAll('.answer-button').forEach(button => {
+            button.disabled = true;
+        });
+    }
+
+    function enableAnswerButtons() {
+        document.querySelectorAll('.answer-button').forEach(button => {
+            button.disabled = false;
+        });
+    }
+
+    // Game Flow Functions (Consistent with other games)
+    function initializeGame() {
+        wallet = 0;
+        walletDisplay.textContent = wallet.toFixed(2);
+        startScreen.style.display = 'flex';
+        gameScreen.style.display = 'none';
+        playAgainScreen.style.display = 'none';
+        roundCount = 0;
+        // Ensure buttons are reset
+        puzzleDisplay.innerHTML = '';
+        choicesContainer.innerHTML = '';
+        nextPuzzleBtn.style.display = 'none';
+    }
+
+    function startGame() {
+        startScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        playAgainScreen.style.display = 'none';
+        wallet = 0; // Reset wallet for new game
+        walletDisplay.textContent = wallet.toFixed(2);
+        roundCount = 0;
+        generatePuzzle(); // Start the first puzzle
+    }
+
+    function endGame() {
+        gameScreen.style.display = 'none';
+        playAgainScreen.style.display = 'flex';
+        finalWalletMessage.textContent = `Great job! You completed ${totalRounds} puzzles! Your final wallet: $${wallet.toFixed(2)}!`;
+        playWinSound();
+    }
+
+    nextPuzzleBtn.onclick = generatePuzzle; // New Puzzle button now linked to nextPuzzleBtn
+
+    // Load first puzzle on page load
+    startButton.addEventListener('click', startGame);
+    playAgainButton.addEventListener('click', startGame);
+    document.addEventListener('DOMContentLoaded', initializeGame);
+  </script>
+
+</body>
+</html>
+
