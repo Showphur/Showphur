@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sort It Out! 🎨📏🔷</title>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for easy theme changes */
+        :root {
+            --primary-bg: #F8F8FF; /* Ghost White - light and airy */
+            --secondary-bg: #FFFFFF; /* White */
+            --text-color: #333333; /* Dark Grey */
+            --button-bg: #90EE90; /* Light Green - fresh start */
+            --button-hover-bg: #6B8E23; /* Olive Drab - darker hover */
+            --success-color: #28a745; /* Bright Green */
+            --error-color: #dc3545; /* Red */
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-radius: 12px;
+            --font-family: 'Inter', sans-serif;
+
+            /* Sorting game specific colors */
+            --bin-border: #87CEFA; /* Light Sky Blue */
+            --bin-bg: #E0FFFF; /* Light Cyan */
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            padding: 30px;
+            width: 100%;
+            max-width: 900px; /* Wider to accommodate multiple bins */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .wallet-board {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .sorting-area {
+            position: relative;
+            width: 100%;
+            min-height: 450px; /* Ample space for sorting */
+            background-color: #F0FFFF; /* Azure */
+            border-radius: var(--border-radius);
+            border: 2px dashed var(--bin-border);
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Space out items and bins */
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sorting-instruction {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #2F4F4F;
+            margin-bottom: 20px;
+            padding: 5px 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            text-wrap: balance;
+            align-self: center; /* Center horizontally */
+        }
+
+        .item-tray {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            min-height: 100px; /* Ensure space for items */
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+            z-index: 5; /* Ensure items are above bins during drag */
+        }
+
+        .draggable-item {
+            width: 70px;
+            height: 70px;
+            background-color: #FFFAF0; /* Floral White */
+            border: 2px solid #D3D3D3;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            position: relative; /* Essential for dragging */
+        }
+
+        .draggable-item.dragging {
+            cursor: grabbing;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            opacity: 0.8;
+            transition: none; /* Disable transition during drag */
+            z-index: 100; /* Bring to front while dragging */
+        }
+        .draggable-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .item-svg {
+            width: 80%; /* Scale SVG inside item container */
+            height: 80%;
+            stroke: #333;
+            stroke-width: 2;
+        }
+
+        .sorting-bins-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .sorting-bin {
+            min-width: 150px;
+            min-height: 120px;
+            background-color: var(--bin-bg);
+            border: 2px solid var(--bin-border);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            box-sizing: border-box;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #4682B4; /* Steel Blue */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            position: relative; /* For appended items */
+        }
+        .sorting-bin.active-drop {
+            border-color: var(--success-color);
+            box-shadow: 0 0 12px rgba(40, 167, 69, 0.6);
+        }
+        .sorting-bin.correct-bin-fill {
+            background-color: #D4EDDA; /* Light green tint */
+        }
+        .sorting-bin .dropped-item-visual {
+            width: 40px; /* Smaller visual for dropped item */
+            height: 40px;
+            margin: 5px;
+            display: inline-block; /* Allow multiple items in one line */
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* General UI */
+        .start-button, .play-again-button {
+            background-color: var(--button-bg);
+            color: var(--text-color);
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+        }
+
+        .start-button:hover, .play-again-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .feedback-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--secondary-bg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            z-index: 1000; /* Ensure it's on top of everything */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            min-width: 250px;
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .feedback-message.correct {
+            background-color: var(--success-color);
+        }
+
+        .feedback-message.incorrect {
+            background-color: var(--error-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+                max-width: 100%; /* Allow full width */
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .sorting-area {
+                min-height: 400px;
+                padding: 15px;
+            }
+            .sorting-instruction {
+                font-size: 1.4em;
+            }
+            .item-tray {
+                gap: 10px;
+                min-height: 80px;
+            }
+            .draggable-item {
+                width: 60px;
+                height: 60px;
+            }
+            .sorting-bins-container {
+                gap: 10px;
+                justify-content: center; /* Center bins when they wrap */
+            }
+            .sorting-bin {
+                min-width: 120px;
+                min-height: 100px;
+                font-size: 1em;
+                padding: 8px;
+            }
+            .sorting-bin .dropped-item-visual {
+                width: 30px;
+                height: 30px;
+                margin: 3px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.5em;
+                padding: 12px 25px;
+            }
+            .feedback-message {
+                font-size: 1.5em;
+                padding: 15px 20px;
+                min-width: 180px;
+            }
+        }
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .sorting-area {
+                min-height: 350px;
+                padding: 10px;
+            }
+            .sorting-instruction {
+                font-size: 1.2em;
+            }
+            .item-tray {
+                gap: 8px;
+            }
+            .draggable-item {
+                width: 50px;
+                height: 50px;
+            }
+            .sorting-bin {
+                min-width: 100px;
+                min-height: 80px;
+                font-size: 0.9em;
+                padding: 5px;
+            }
+            .sorting-bin .dropped-item-visual {
+                width: 25px;
+                height: 25px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.3em;
+                padding: 10px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>Sort It Out! 🎨📏🔷</h1>
+        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p style="font-size: 1.2em; text-align: center;">Help sort these fun items by color, size, or shape!</p>
+            <button class="start-button" id="startButton">Start Sorting!</button>
+        </div>
+
+        <!-- Game Screen (initially hidden) -->
+        <div id="gameScreen" style="display: none; flex-direction: column; align-items: center;">
+            <div class="sorting-area" id="sortingArea">
+                <div class="sorting-instruction" id="sortingInstruction"></div>
+                <div class="sorting-bins-container" id="sortingBinsContainer">
+                    <!-- Sorting bins will be dynamically generated here -->
+                </div>
+                <div class="item-tray" id="itemTray">
+                    <!-- Draggable items will be dynamically generated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- Play Again Screen (initially hidden) -->
+        <div id="playAgainScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p id="finalWalletMessage" style="font-size: 1.5em; font-weight: bold;"></p>
+            <button class="play-again-button" id="playAgainButton">Sort Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let wallet = 0;
+        const moneyPerCorrectAction = 3.00; // Amount earned per correct item
+        const moneyPerIncorrectAction = 1.50; // Amount lost per incorrect item
+        let roundCount = 0;
+        const totalRounds = 8; // Number of sorting challenges per game
+        let itemsInRound = []; // Items currently on the tray
+        let sortedItemsCount = 0; // How many items have been correctly sorted in the current round
+
+        let isDragging = false;
+        let draggedElement = null;
+        let initialMouseX, initialMouseY, initialElementX, initialElementY;
+
+        // Get DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const playAgainScreen = document.getElementById('playAgainScreen');
+        const walletDisplay = document.getElementById('wallet');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const finalWalletMessage = document.getElementById('finalWalletMessage');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+
+        const sortingArea = document.getElementById('sortingArea');
+        const sortingInstruction = document.getElementById('sortingInstruction');
+        const itemTray = document.getElementById('itemTray');
+        const sortingBinsContainer = document.getElementById('sortingBinsContainer');
+
+        // Initialize Tone.js for simple sound effects
+        const correctSound = new Tone.Synth().toDestination();
+        const incorrectSound = new Tone.Synth().toDestination();
+        const winSound = new Tone.MembraneSynth().toDestination();
+        const dropSound = new Tone.MembraneSynth().toDestination();
+
+        // Sound settings
+        correctSound.oscillator.type = "sine";
+        incorrectSound.oscillator.type = "sawtooth";
+        winSound.octaves = 10;
+        winSound.pitchDecay = 0.05;
+        dropSound.envelope.decay = 0.1;
+
+        /**
+         * Plays a short "correct" sound.
+         */
+        function playCorrectSound() {
+            correctSound.triggerAttackRelease("C5", "8n");
+        }
+
+        /**
+         * Plays a short "incorrect" sound.
+         */
+        function playIncorrectSound() {
+            incorrectSound.triggerAttackRelease("C3", "8n");
+        }
+
+        /**
+         * Plays a celebratory sound.
+         */
+        function playWinSound() {
+            winSound.triggerAttackRelease("C4", "2n");
+        }
+
+        /**
+         * Plays a subtle drop sound.
+         */
+        function playDropSound() {
+            dropSound.triggerAttackRelease("E4", "16n");
+        }
+
+        /**
+         * Shuffles an array randomly.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // ES6 swap
+            }
+            return array;
+        }
+
+        // --- Item and Rule Definitions (UPDATED for clearer size distinctions) ---
+        const allItems = [
+            // Red Items
+            { id: 'red_small_circle', color: 'red', size: 'small', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="20" fill="red"/></svg>' },
+            { id: 'red_medium_circle', color: 'red', size: 'medium', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="red"/></svg>' },
+            { id: 'red_large_circle', color: 'red', size: 'large', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="red"/></svg>' },
+
+            { id: 'red_small_square', color: 'red', size: 'small', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="35" y="35" width="30" height="30" fill="red"/></svg>' },
+            { id: 'red_medium_square', color: 'red', size: 'medium', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50" fill="red"/></svg>' },
+            { id: 'red_large_square', color: 'red', size: 'large', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="red"/></svg>' },
+
+            { id: 'red_small_triangle', color: 'red', size: 'small', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,40 65,70 35,70" fill="red"/></svg>' },
+            { id: 'red_medium_triangle', color: 'red', size: 'medium', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,25 80,80 20,80" fill="red"/></svg>' },
+            { id: 'red_large_triangle', color: 'red', size: 'large', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,90 5,90" fill="red"/></svg>' },
+            
+            { id: 'red_small_star', color: 'red', size: 'small', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,40 L55,55 L70,55 L60,65 L65,80 L50,70 L35,80 L40,65 L30,55 L45,55 Z" fill="red"/></svg>' },
+            { id: 'red_medium_star', color: 'red', size: 'medium', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,25 L58,45 L80,45 L62,60 L70,80 L50,68 L30,80 L38,60 L20,45 L42,45 Z" fill="red"/></svg>' },
+            { id: 'red_large_star', color: 'red', size: 'large', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,10 L61,39 L92,39 L67,58 L78,87 L50,68 L22,87 L33,58 L8,39 L39,39 Z" fill="red"/></svg>' },
+
+            // Blue Items
+            { id: 'blue_small_circle', color: 'blue', size: 'small', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="20" fill="blue"/></svg>' },
+            { id: 'blue_medium_circle', color: 'blue', size: 'medium', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="blue"/></svg>' },
+            { id: 'blue_large_circle', color: 'blue', size: 'large', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="blue"/></svg>' },
+
+            { id: 'blue_small_square', color: 'blue', size: 'small', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="35" y="35" width="30" height="30" fill="blue"/></svg>' },
+            { id: 'blue_medium_square', color: 'blue', size: 'medium', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50" fill="blue"/></svg>' },
+            { id: 'blue_large_square', color: 'blue', size: 'large', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="blue"/></svg>' },
+
+            { id: 'blue_small_triangle', color: 'blue', size: 'small', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,40 65,70 35,70" fill="blue"/></svg>' },
+            { id: 'blue_medium_triangle', color: 'blue', size: 'medium', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,25 80,80 20,80" fill="blue"/></svg>' },
+            { id: 'blue_large_triangle', color: 'blue', size: 'large', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,90 5,90" fill="blue"/></svg>' },
+
+            { id: 'blue_small_star', color: 'blue', size: 'small', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,40 L55,55 L70,55 L60,65 L65,80 L50,70 L35,80 L40,65 L30,55 L45,55 Z" fill="blue"/></svg>' },
+            { id: 'blue_medium_star', color: 'blue', size: 'medium', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,25 L58,45 L80,45 L62,60 L70,80 L50,68 L30,80 L38,60 L20,45 L42,45 Z" fill="blue"/></svg>' },
+            { id: 'blue_large_star', color: 'blue', size: 'large', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,10 L61,39 L92,39 L67,58 L78,87 L50,68 L22,87 L33,58 L8,39 L39,39 Z" fill="blue"/></svg>' },
+            
+            // Green Items
+            { id: 'green_small_circle', color: 'green', size: 'small', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="20" fill="green"/></svg>' },
+            { id: 'green_medium_circle', color: 'green', size: 'medium', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="green"/></svg>' },
+            { id: 'green_large_circle', color: 'green', size: 'large', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="green"/></svg>' },
+
+            { id: 'green_small_square', color: 'green', size: 'small', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="35" y="35" width="30" height="30" fill="green"/></svg>' },
+            { id: 'green_medium_square', color: 'green', size: 'medium', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50" fill="green"/></svg>' },
+            { id: 'green_large_square', color: 'green', size: 'large', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="green"/></svg>' },
+
+            { id: 'green_small_triangle', color: 'green', size: 'small', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,40 65,70 35,70" fill="green"/></svg>' },
+            { id: 'green_medium_triangle', color: 'green', size: 'medium', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,25 80,80 20,80" fill="green"/></svg>' },
+            { id: 'green_large_triangle', color: 'green', size: 'large', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,90 5,90" fill="green"/></svg>' },
+
+            { id: 'green_small_star', color: 'green', size: 'small', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,40 L55,55 L70,55 L60,65 L65,80 L50,70 L35,80 L40,65 L30,55 L45,55 Z" fill="green"/></svg>' },
+            { id: 'green_medium_star', color: 'green', size: 'medium', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,25 L58,45 L80,45 L62,60 L70,80 L50,68 L30,80 L38,60 L20,45 L42,45 Z" fill="green"/></svg>' },
+            { id: 'green_large_star', color: 'green', size: 'large', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,10 L61,39 L92,39 L67,58 L78,87 L50,68 L22,87 L33,58 L8,39 L39,39 Z" fill="green"/></svg>' },
+            
+            // Yellow Items
+            { id: 'yellow_small_circle', color: 'yellow', size: 'small', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="20" fill="yellow"/></svg>' },
+            { id: 'yellow_medium_circle', color: 'yellow', size: 'medium', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="35" fill="yellow"/></svg>' },
+            { id: 'yellow_large_circle', color: 'yellow', size: 'large', shape: 'circle', svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="yellow"/></svg>' },
+
+            { id: 'yellow_small_square', color: 'yellow', size: 'small', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="35" y="35" width="30" height="30" fill="yellow"/></svg>' },
+            { id: 'yellow_medium_square', color: 'yellow', size: 'medium', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="25" y="25" width="50" height="50" fill="yellow"/></svg>' },
+            { id: 'yellow_large_square', color: 'yellow', size: 'large', shape: 'square', svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" fill="yellow"/></svg>' },
+
+            { id: 'yellow_small_triangle', color: 'yellow', size: 'small', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,40 65,70 35,70" fill="yellow"/></svg>' },
+            { id: 'yellow_medium_triangle', color: 'yellow', size: 'medium', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,25 80,80 20,80" fill="yellow"/></svg>' },
+            { id: 'yellow_large_triangle', color: 'yellow', size: 'large', shape: 'triangle', svg: '<svg viewBox="0 0 100 100"><polygon points="50,5 95,90 5,90" fill="yellow"/></svg>' },
+
+            { id: 'yellow_small_star', color: 'yellow', size: 'small', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,40 L55,55 L70,55 L60,65 L65,80 L50,70 L35,80 L40,65 L30,55 L45,55 Z" fill="yellow"/></svg>' },
+            { id: 'yellow_medium_star', color: 'yellow', size: 'medium', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,25 L58,45 L80,45 L62,60 L70,80 L50,68 L30,80 L38,60 L20,45 L42,45 Z" fill="yellow"/></svg>' },
+            { id: 'yellow_large_star', color: 'yellow', size: 'large', shape: 'star', svg: '<svg viewBox="0 0 100 100"><path d="M50,10 L61,39 L92,39 L67,58 L78,87 L50,68 L22,87 L33,58 L8,39 L39,39 Z" fill="yellow"/></svg>' },
+        ];
+
+        const sortingRules = [
+            {
+                type: 'color',
+                label: 'Sort by Color',
+                categories: ['red', 'blue', 'green', 'yellow'],
+                getInstruction: () => 'Sort the items by their **Color**!'
+            },
+            {
+                type: 'size',
+                label: 'Sort by Size',
+                categories: ['small', 'medium', 'large'],
+                getInstruction: () => 'Sort the items by their **Size**!'
+            },
+            {
+                type: 'shape',
+                label: 'Sort by Shape',
+                categories: ['circle', 'square', 'triangle', 'star'],
+                getInstruction: () => 'Sort the items by their **Shape**!'
+            }
+        ];
+
+        let currentSortingRule = null;
+        let correctItemsToSort = 0; // Total correct items for the current round
+
+        /**
+         * Generates a new sorting round.
+         */
+        function generateRound() {
+            if (roundCount >= totalRounds) {
+                endGame();
+                return;
+            }
+
+            // Reset for new round
+            itemTray.innerHTML = '';
+            sortingBinsContainer.innerHTML = '';
+            sortedItemsCount = 0;
+            itemsInRound = [];
+            correctItemsToSort = 0;
+
+            // Select a random sorting rule
+            currentSortingRule = shuffleArray([...sortingRules])[0];
+            sortingInstruction.textContent = currentSortingRule.getInstruction();
+
+            // Create sorting bins
+            const uniqueCategoriesInRound = new Set();
+            currentSortingRule.categories.forEach(category => {
+                const bin = document.createElement('div');
+                bin.className = 'sorting-bin';
+                bin.dataset.categoryType = currentSortingRule.type;
+                bin.dataset.categoryValue = category;
+                bin.innerHTML = `<span>${category.charAt(0).toUpperCase() + category.slice(1)}</span>`; // Capitalize first letter
+                sortingBinsContainer.appendChild(bin);
+                uniqueCategoriesInRound.add(category);
+            });
+
+            // Populate item tray with a mix of items relevant to the categories
+            const itemsForThisRound = [];
+            let availableItems = shuffleArray([...allItems]);
+
+            // Ensure we have at least one item for each bin type
+            Array.from(uniqueCategoriesInRound).forEach(category => {
+                const item = availableItems.find(item => item[currentSortingRule.type] === category);
+                if (item && !itemsForThisRound.includes(item)) {
+                    itemsForThisRound.push(item);
+                    availableItems = availableItems.filter(i => i.id !== item.id); // Remove to prevent duplicates
+                }
+            });
+
+            // Add more random items until we have enough, ensuring they fit *any* category
+            // We'll add a few extra to make the tray feel "full" and offer choice.
+            const maxItemsPerRound = 8; // Adjust as needed
+            let count = itemsForThisRound.length;
+
+            while (count < maxItemsPerRound && availableItems.length > 0) {
+                const item = availableItems.pop();
+                // Only add if it belongs to one of the active categories for this rule
+                if (uniqueCategoriesInRound.has(item[currentSortingRule.type])) {
+                     itemsForThisRound.push(item);
+                     count++;
+                }
+            }
+
+            correctItemsToSort = itemsForThisRound.length;
+
+            shuffleArray(itemsForThisRound).forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'draggable-item';
+                itemDiv.innerHTML = item.svg; // Insert SVG directly
+                itemDiv.dataset.itemId = item.id;
+                itemDiv.dataset.itemColor = item.color;
+                itemDiv.dataset.itemSize = item.size;
+                itemDiv.dataset.itemShape = item.shape;
+
+                itemDiv.onmousedown = handleDragStart;
+                itemDiv.ontouchstart = handleDragStart;
+                itemTray.appendChild(itemDiv);
+                itemsInRound.push(itemDiv);
+            });
+
+            roundCount++;
+        }
+
+        /**
+         * Handles the start of a drag operation.
+         * @param {Event} event - The mouse or touch event.
+         */
+        function handleDragStart(event) {
+            isDragging = true;
+            draggedElement = event.currentTarget;
+            draggedElement.classList.add('dragging');
+
+            // Calculate initial offset relative to viewport
+            const rect = draggedElement.getBoundingClientRect();
+            initialMouseX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+            initialMouseY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
+            initialElementX = rect.left;
+            initialElementY = rect.top;
+
+            // Set position to fixed to drag relative to viewport
+            draggedElement.style.position = 'fixed';
+            draggedElement.style.left = `${initialElementX}px`;
+            draggedElement.style.top = `${initialElementY}px`;
+
+            // Highlight all potential drop targets (bins)
+            document.querySelectorAll('.sorting-bin').forEach(bin => {
+                bin.classList.add('active-drop');
+            });
+
+            // Attach global event listeners
+            document.onmousemove = handleDrag;
+            document.onmouseup = handleDragEnd;
+            document.ontouchmove = handleDrag;
+            document.ontouchend = handleDragEnd;
+        }
+
+        /**
+         * Handles the drag movement.
+         * @param {Event} event - The mouse or touch event.
+         */
+        function handleDrag(event) {
+            if (!isDragging || !draggedElement) return;
+
+            event.preventDefault(); // Prevent scrolling/text selection
+
+            const currentX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+            const currentY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
+
+            const deltaX = currentX - initialMouseX;
+            const deltaY = currentY - initialMouseY;
+
+            draggedElement.style.left = `${initialElementX + deltaX}px`;
+            draggedElement.style.top = `${initialElementY + deltaY}px`;
+        }
+
+        /**
+         * Handles the end of a drag operation.
+         * @param {Event} event - The mouse or touch event.
+         */
+        function handleDragEnd(event) {
+            if (!isDragging || !draggedElement) return;
+
+            isDragging = false;
+            draggedElement.classList.remove('dragging');
+
+            // Remove highlight from all bins
+            document.querySelectorAll('.sorting-bin').forEach(bin => {
+                bin.classList.remove('active-drop');
+            });
+
+            // Remove global event listeners
+            document.onmousemove = null;
+            document.onmouseup = null;
+            document.ontouchmove = null;
+            document.ontouchend = null;
+
+            let droppedSuccessfully = false;
+            let foundCorrectBin = false;
+            let targetBin = null;
+
+            // Check each bin for a successful drop
+            document.querySelectorAll('.sorting-bin').forEach(bin => {
+                const binRect = bin.getBoundingClientRect();
+                const itemRect = draggedElement.getBoundingClientRect();
+
+                if (
+                    itemRect.left < binRect.right &&
+                    itemRect.right > binRect.left &&
+                    itemRect.top < binRect.bottom &&
+                    itemRect.bottom > binRect.top
+                ) {
+                    // Item dropped into this bin
+                    targetBin = bin;
+                    const itemValue = draggedElement.dataset[`item${bin.dataset.categoryType.charAt(0).toUpperCase() + bin.dataset.categoryType.slice(1)}`];
+                    
+                    if (itemValue === bin.dataset.categoryValue) {
+                        // Correct bin!
+                        foundCorrectBin = true;
+                        droppedSuccessfully = true;
+                        playCorrectSound();
+                        wallet += moneyPerCorrectAction;
+                        sortedItemsCount++;
+                        
+                        // Visually "sort" the item by moving its SVG to the bin
+                        const droppedVisual = document.createElement('div');
+                        droppedVisual.className = 'dropped-item-visual';
+                        droppedVisual.innerHTML = draggedElement.innerHTML; // Copy SVG content
+                        targetBin.appendChild(droppedVisual);
+
+                        // Remove the original item from the tray
+                        draggedElement.remove();
+                        itemsInRound = itemsInRound.filter(item => item !== draggedElement);
+
+                        feedbackMessage.textContent = 'Correct! 🎉';
+                        feedbackMessage.classList.add('show', 'correct');
+                    } else {
+                        // Incorrect bin!
+                        playIncorrectSound();
+                        wallet = Math.max(0, wallet - moneyPerIncorrectAction);
+                        feedbackMessage.textContent = `Oops! Not the right bin! 💸`;
+                        feedbackMessage.classList.add('show', 'incorrect');
+                    }
+                    // Break out of loop if a drop occurred in any bin
+                    return;
+                }
+            });
+
+            if (!droppedSuccessfully) {
+                // If the item wasn't dropped into any bin, or dropped into a wrong bin
+                if (!foundCorrectBin) { // This check ensures we don't double penalize if it was dropped in *a* wrong bin
+                    playIncorrectSound(); // Play sound if no valid bin was hit
+                    wallet = Math.max(0, wallet - moneyPerIncorrectAction);
+                    feedbackMessage.textContent = `Oops! Try again! 💸`;
+                    feedbackMessage.classList.add('show', 'incorrect');
+                }
+                // Snap back to original position if not correctly sorted
+                draggedElement.style.transition = 'left 0.3s ease-out, top 0.3s ease-out, transform 0.3s ease-out';
+                draggedElement.style.position = 'relative';
+                draggedElement.style.left = '0px';
+                draggedElement.style.top = '0px';
+                draggedElement.style.transform = 'none';
+                setTimeout(() => {
+                    if (draggedElement) draggedElement.style.transition = 'none';
+                }, 300);
+            }
+
+            walletDisplay.textContent = wallet.toFixed(2);
+
+            setTimeout(() => {
+                feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+                checkRoundCompletion(); // Check if all items are sorted
+            }, 1500);
+
+            draggedElement = null; // Clear dragged element reference
+        }
+
+        /**
+         * Checks if all items in the current round have been sorted.
+         */
+        function checkRoundCompletion() {
+            if (sortedItemsCount >= correctItemsToSort) {
+                // All items sorted, end round or move to next
+                setTimeout(generateRound, 500); // Give a moment before next round
+            }
+        }
+
+        /**
+         * Initializes the game by showing the start screen.
+         */
+        function initializeGame() {
+            wallet = 0;
+            walletDisplay.textContent = wallet.toFixed(2);
+            startScreen.style.display = 'flex';
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'none';
+            roundCount = 0;
+            itemTray.innerHTML = '';
+            sortingBinsContainer.innerHTML = '';
+            sortedItemsCount = 0;
+        }
+
+        /**
+         * Starts the game, hiding the start screen and showing the game screen.
+         */
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'flex';
+            playAgainScreen.style.display = 'none';
+            wallet = 0;
+            walletDisplay.textContent = wallet.toFixed(2);
+            roundCount = 0;
+            generateRound(); // Start the first sorting round
+        }
+
+        /**
+         * Displays the final wallet amount and play again button.
+         */
+        function endGame() {
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'flex';
+            finalWalletMessage.textContent = `Great job! You sorted ${totalRounds} challenges and earned $${wallet.toFixed(2)}!`;
+            playWinSound();
+        }
+
+        // Event Listeners for game control buttons
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', startGame);
+
+        // Initialize the game when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>
+
