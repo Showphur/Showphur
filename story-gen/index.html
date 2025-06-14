@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storyteller's Journey! 📚✨</title>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for easy theme changes */
+        :root {
+            --primary-bg: #FFE4B5; /* Moccasin - warm, inviting */
+            --secondary-bg: #FFFFFF; /* White */
+            --text-color: #333333; /* Dark Grey */
+            --button-bg: #FFD700; /* Gold - bright choice */
+            --button-hover-bg: #DAA520; /* Goldenrod - darker hover */
+            --button-text-color: #333333;
+            --start-button-bg: #6B8E23; /* Olive Drab - earthy start */
+            --start-button-hover-bg: #556B2F; /* Dark Olive Green */
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-radius: 15px;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .story-display {
+            background-color: #F8F8FF; /* Alice Blue - soft background for story */
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.3em;
+            line-height: 1.6;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+            color: #555555;
+            transition: all 0.5s ease-in-out; /* Smooth transition for story changes */
+        }
+
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .choice-button {
+            background-color: var(--button-bg);
+            color: var(--button-text-color);
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.4em;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 8px var(--shadow-color);
+            text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .choice-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px var(--shadow-color);
+        }
+
+        .choice-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px var(--shadow-color);
+        }
+
+        .start-button, .play-again-button {
+            background-color: var(--start-button-bg);
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+        }
+
+        .start-button:hover, .play-again-button:hover {
+            background-color: var(--start-button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 2em;
+            }
+            .story-display {
+                font-size: 1.1em;
+                min-height: 120px;
+            }
+            .choice-button {
+                font-size: 1.2em;
+                padding: 12px 20px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.5em;
+                padding: 15px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>Storyteller's Journey! 📚✨</h1>
+
+        <!-- Start Screen -->
+        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p style="font-size: 1.2em; text-align: center;">Go on a fun adventure where what you pick changes the story!</p>
+            <button class="start-button" id="startButton">Start My Story</button>
+        </div>
+
+        <!-- Game Screen (initially hidden) -->
+        <div id="gameScreen" style="display: none; flex-direction: column; align-items: center;">
+            <div class="story-display" id="storyText"></div>
+            <div class="choices-container" id="choicesContainer">
+                <!-- Choice buttons will be dynamically inserted here -->
+            </div>
+        </div>
+
+        <!-- End Screen (initially hidden) -->
+        <div id="endScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <div class="story-display" id="finalStoryText"></div>
+            <button class="play-again-button" id="playAgainButton">Play Again?</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let currentState = 'intro'; // Starting state ID
+
+        // Get DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const endScreen = document.getElementById('endScreen');
+        const storyTextDisplay = document.getElementById('storyText');
+        const choicesContainer = document.getElementById('choicesContainer');
+        const finalStoryText = document.getElementById('finalStoryText');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+
+        // Initialize Tone.js for simple sound effects
+        const choiceSound = new Tone.Synth().toDestination();
+        const endSound = new Tone.MembraneSynth().toDestination();
+
+        // Sound settings
+        choiceSound.oscillator.type = "triangle";
+        endSound.octaves = 8;
+        endSound.pitchDecay = 0.08;
+
+        /**
+         * Plays a short sound when a choice is made.
+         */
+        function playChoiceSound() {
+            choiceSound.triggerAttackRelease("C4", "16n");
+        }
+
+        /**
+         * Plays a sound when the story ends.
+         */
+        function playEndSound() {
+            endSound.triggerAttackRelease("G4", "2n");
+        }
+
+        /**
+         * Defines the story states, including text, choices, and their next states.
+         * Each state has an ID, story text, and an array of choices.
+         * Choices have text and a target state ID.
+         * Endings have only story text.
+         */
+        const gameStates = {
+            intro: {
+                text: "You are Alex, a fun explorer, walking through a bright, green jungle. Oops! You find a shiny, magic box buried in the ground. It glows softly.",
+                choices: [
+                    { text: "Carefully touch the glowing box.", nextState: "touch_device" },
+                    { text: "Look at the strange box from far away.", nextState: "examine_device" }
+                ]
+            },
+            touch_device: {
+                text: "When you touch the box, it starts to hum! A kind robot voice speaks in your head: 'Hello, explorer! How can I help you?'",
+                choices: [
+                    { text: "Ask the robot about old secrets in this place.", nextState: "ai_ruins" },
+                    { text: "Ask the robot if it knows where to find treasure!", nextState: "ai_treasure" }
+                ]
+            },
+            examine_device: {
+                text: "You stand back and watch the box. You see cool pictures on its side. Suddenly, a little robot with many legs, who looks a bit broken, crawls out from behind it. It makes soft beeps.",
+                choices: [
+                    { text: "Offer to help the little robot.", nextState: "help_robot" },
+                    { text: "Decide it's best to leave the robot alone.", nextState: "ignore_robot" }
+                ]
+            },
+            ai_ruins: {
+                text: "'This place has old stories from a long-ago time,' the robot says. 'Their smart ideas are hidden here. If you follow me, you will learn amazing new things!' The box shows a map.",
+                choices: [
+                    { text: "Follow the robot's map to old libraries.", nextState: "ending_wise_explorer" },
+                    { text: "Ask the robot if it has any fun games instead.", nextState: "ai_games_distraction" }
+                ]
+            },
+            ai_treasure: {
+                text: "'Oh, shiny treasure! A simple wish!' the robot says. 'There is a secret room under this jungle, full of sparkly gems. I can show you the way, but it will be a tricky path.' A golden light comes from the box.",
+                choices: [
+                    { text: "Go on the tricky treasure hunt!", nextState: "ending_rich_explorer" },
+                    { text: "Think about others; ask the robot if this treasure could help the world.", nextState: "ai_philanthropy" }
+                ]
+            },
+            help_robot: {
+                text: "You gently pick up the broken robot. It makes happy whirs as you carefully fix a loose wire. It then points to a secret part of the ruins and beeps with excitement, showing a glowing door!",
+                choices: [
+                    { text: "Go through the glowing door with your new robot friend.", nextState: "ending_heroic_explorer" },
+                    { text: "Thank the robot, but stay in the jungle.", nextState: "stay_in_jungle" }
+                ]
+            },
+            ignore_robot: {
+                text: "You decide to let the broken robot be. It tries hard for a moment, then crawls away into the plants and you can't see it anymore. You feel a little sad about not helping.",
+                choices: [
+                    { text: "Keep exploring the jungle by yourself.", nextState: "ending_lonely_explorer" },
+                    { text: "Maybe I should have helped it...", nextState: "regret_robot" }
+                ]
+            },
+
+            // --- Endings ---
+            ending_wise_explorer: {
+                text: "You learn many old secrets and become a famous story helper, sharing wise ideas that make the world better. You feel very smart. ✨ (The Smart Explorer Ending!)"
+            },
+            ending_rich_explorer: {
+                text: "You bravely go through tricky traps and find lots of treasure! You use your money to live a very fancy life, but you always remember the exciting adventure. 💰 (The Rich Explorer Ending!)"
+            },
+            ending_heroic_explorer: {
+                text: "The glowing door takes you and your little robot friend to amazing new places with cool animals and untouched wonders. You become a super explorer! 🚀 (The Super Explorer Ending!)"
+            },
+            ending_lonely_explorer: {
+                text: "You keep exploring, but the jungle feels a little less special. You go home later, always wondering what cool things you might have found if you were just a bit kinder or braver. 😔 (The Wondering Explorer Ending!)"
+            },
+
+            // --- Mini-branches/more choices if desired ---
+            ai_games_distraction: {
+                text: "'Games?' the robot chirps. 'Yes! I have games about many stars! Even though old smart ideas are waiting, a quick game is okay. Shall we play Star Chess?'",
+                choices: [
+                    { text: "Play Star Chess with the robot.", nextState: "ending_galactic_gamer" },
+                    { text: "No, let's go back to the ruins, please!", nextState: "ending_wise_explorer" } // Loop back to wise path
+                ]
+            },
+            ending_galactic_gamer: {
+                text: "You spend lots of time playing amazing computer games with the robot, becoming the best chess player in the stars! It's fun, but you know real adventure is out there. 🎮 (The Best Gamer Ending!)"
+            },
+            ai_philanthropy: {
+                text: "'What a kind idea!' the robot says. 'This treasure can truly help build cool new things for everyone. To get it safely, we need to start the old magic ride.'",
+                choices: [
+                    { text: "Start the magic ride to help everyone!", nextState: "ending_philanthropic_explorer" },
+                    { text: "Hmm, maybe I'll just keep it myself...", nextState: "ending_rich_explorer" } // Choice leads back
+                ]
+            },
+            ending_philanthropic_explorer: {
+                text: "You bring the treasure back and start a group that helps make amazing new tech, making life better for everyone on Earth. You become a hero who makes things better! 🌍 (The World Helper Ending!)"
+            },
+            stay_in_jungle: {
+                text: "You thank the robot and stay exploring the glowing jungle. It's pretty, but you keep thinking about the glowing door and what else was out there. You go home later, thinking 'what if'. 🌳 (The Quiet Explorer Ending!)"
+            },
+            regret_robot: {
+                text: "The sad feeling about not helping the robot stays with you. You keep wondering about the little robot and the glowing door. This adventure taught you a big lesson about being kind when you can. You go home later, a bit smarter. 🚶‍♀️ (The Thoughtful Explorer Ending!)"
+            }
+        };
+
+        /**
+         * Updates the game display based on the current state.
+         * @param {string} stateId - The ID of the current game state.
+         */
+        function updateDisplay(stateId) {
+            const state = gameStates[stateId];
+            storyTextDisplay.textContent = state.text;
+
+            // Clear previous choices
+            choicesContainer.innerHTML = '';
+
+            if (state.choices) {
+                // If there are choices, create buttons for them
+                state.choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.className = 'choice-button';
+                    button.textContent = choice.text;
+                    button.onclick = () => makeChoice(choice.nextState);
+                    choicesContainer.appendChild(button);
+                });
+                gameScreen.style.display = 'flex';
+                endScreen.style.display = 'none';
+            } else {
+                // If there are no choices, it's an ending
+                setTimeout(() => {
+                    endScreen.style.display = 'flex';
+                    gameScreen.style.display = 'none';
+                    finalStoryText.textContent = state.text;
+                    playEndSound();
+                }, 1000); // Give a moment for the story text to settle before showing end screen
+            }
+        }
+
+        /**
+         * Processes a player's choice and updates the game state.
+         * @param {string} nextStateId - The ID of the next state after the choice.
+         */
+        function makeChoice(nextStateId) {
+            playChoiceSound();
+            currentState = nextStateId;
+            updateDisplay(currentState);
+        }
+
+        /**
+         * Initializes the game by showing the start screen.
+         */
+        function initializeGame() {
+            startScreen.style.display = 'flex';
+            gameScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+        }
+
+        /**
+         * Starts the game, hiding the start screen and displaying the first story state.
+         */
+        function startGame() {
+            startScreen.style.display = 'none';
+            currentState = 'intro'; // Reset to beginning of story
+            updateDisplay(currentState);
+        }
+
+        // Event Listeners for game control buttons
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', startGame);
+
+        // Initialize the game when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>
+
