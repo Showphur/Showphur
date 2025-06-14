@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Measurement Explorer! 📏⚖️</title>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for easy theme changes */
+        :root {
+            --primary-bg: #B0E0E6; /* Powder Blue - light and airy */
+            --secondary-bg: #FFFFFF; /* White */
+            --text-color: #333333; /* Dark Grey */
+            --button-bg: #5F9EA0; /* Cadet Blue - solid, trustworthy */
+            --button-hover-bg: #4682B4; /* Steel Blue */
+            --button-text-color: white;
+            --success-color: #28a745; /* Bright Green */
+            --error-color: #dc3545; /* Red */
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-radius: 12px;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .wallet-board {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .question-area {
+            min-height: 150px; /* More space for two items */
+            display: flex;
+            flex-direction: column; /* Stack question and items */
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            background-color: #F8F8FF;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-text {
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .items-display {
+            display: flex;
+            gap: 30px; /* Space between the two items */
+            align-items: flex-end; /* Align items at the bottom for visual comparison of height/length */
+            justify-content: center;
+        }
+
+        .item-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            border: 2px solid #D3D3D3; /* Light grey border */
+            border-radius: 10px;
+            background-color: #F5FFFA; /* Mint Cream */
+            flex-basis: 45%; /* Give each item a base width */
+            max-width: 200px; /* Max width for items */
+            min-height: 100px;
+            justify-content: flex-end; /* Push content to bottom for length/height visual */
+        }
+        .item-card .emoji {
+            font-size: 4em; /* Large emoji for clarity */
+            line-height: 1;
+        }
+        .item-card .item-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        /* Visual styling for longer/shorter */
+        .item-card.longer-item {
+            height: 120px; /* Example height for longer item */
+            transition: height 0.3s ease;
+        }
+        .item-card.shorter-item {
+            height: 80px; /* Example height for shorter item */
+            transition: height 0.3s ease;
+        }
+
+        /* Visual styling for heavier/lighter (e.g., via background intensity) */
+        .item-card.heavier-item {
+            background-color: #CCE5FF; /* Lighter blue for visual "heaviness" */
+        }
+        .item-card.lighter-item {
+            background-color: #F0F8FF; /* Even lighter blue */
+        }
+
+
+        .answers-area {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Larger buttons for item names */
+            gap: 15px;
+        }
+
+        .answer-button {
+            background-color: var(--button-bg);
+            color: var(--button-text-color);
+            border: none;
+            padding: 15px 25px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .answer-button:hover {
+            background-color: var(--button-hover-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .answer-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 6px var(--shadow-color);
+        }
+
+        /* Ripple effect for button clicks */
+        .answer-button::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.3);
+            width: 100px;
+            height: 100px;
+            margin-top: -50px;
+            margin-left: -50px;
+            opacity: 0;
+            transition: transform 0.5s, opacity 0.5s;
+            transform: scale(0);
+            pointer-events: none;
+        }
+
+        .answer-button:active::after {
+            transform: scale(2);
+            opacity: 1;
+            transition: 0s;
+        }
+
+        .feedback-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--secondary-bg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            min-width: 250px;
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .feedback-message.correct {
+            background-color: var(--success-color);
+        }
+
+        .feedback-message.incorrect {
+            background-color: var(--error-color);
+        }
+
+        .start-button, .play-again-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+        }
+
+        .start-button:hover, .play-again-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            .question-text {
+                font-size: 1.2em;
+            }
+            .items-display {
+                flex-direction: column; /* Stack items vertically on small screens */
+                gap: 20px;
+            }
+            .item-card {
+                width: 90%; /* Take up more width when stacked */
+                max-width: 100%;
+                min-height: 80px;
+                height: auto !important; /* Remove fixed heights for stacking */
+            }
+            .item-card .emoji {
+                font-size: 3em;
+            }
+            .answer-button {
+                font-size: 1.2em;
+                padding: 12px 20px;
+            }
+            .feedback-message {
+                font-size: 1.5em;
+                padding: 15px 20px;
+                min-width: 200px;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.5em;
+                padding: 12px 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>Measurement Explorer! 📏⚖️</h1>
+        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p style="font-size: 1.2em; text-align: center;">Let's explore measurements! Identify which item is longer, shorter, heavier, or lighter and earn some money!</p>
+            <button class="start-button" id="startButton">Start Game!</button>
+        </div>
+
+        <!-- Game Screen (initially hidden) -->
+        <div id="gameScreen" style="display: none;">
+            <div class="question-area" id="questionArea">
+                <div class="question-text" id="questionText"></div>
+                <div class="items-display" id="itemsDisplay">
+                    <!-- Items will be dynamically added here -->
+                </div>
+            </div>
+            <div class="answers-area" id="answersArea">
+                <!-- Answer buttons (item names) will be dynamically added here -->
+            </div>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- Play Again Screen (initially hidden) -->
+        <div id="playAgainScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p id="finalWalletMessage" style="font-size: 1.5em; font-weight: bold;"></p>
+            <button class="play-again-button" id="playAgainButton">Play Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let wallet = 0;
+        let currentCorrectAnswer = ''; // Stores the name of the correct item
+        const moneyPerCorrectAnswer = 3.00; // Fixed amount earned/lost per round
+        let roundCount = 0;
+        const totalRounds = 10; // Number of questions per game
+
+        // Define measurement scenarios with items, questions, and answers
+        const measurementScenarios = [
+            // Longer / Shorter
+            {
+                type: 'length',
+                item1: { name: 'Worm', emoji: '🐛' },
+                item2: { name: 'Snake', emoji: '🐍' },
+                question: 'Which is LONGER?',
+                correct: 'Snake',
+                visualClasses: ['shorter-item', 'longer-item']
+            },
+            {
+                type: 'length',
+                item1: { name: 'Pencil', emoji: '✏️' },
+                item2: { name: 'Ruler', emoji: '📏' },
+                question: 'Which is SHORTER?',
+                correct: 'Pencil',
+                visualClasses: ['shorter-item', 'longer-item']
+            },
+            {
+                type: 'length',
+                item1: { name: 'Bus', emoji: '🚌' },
+                item2: { name: 'Car', emoji: '🚗' },
+                question: 'Which is LONGER?',
+                correct: 'Bus',
+                visualClasses: ['longer-item', 'shorter-item']
+            },
+            {
+                type: 'length',
+                item1: { name: 'Toothbrush', emoji: '🪥' },
+                item2: { name: 'Toothpick', emoji: ' toothpick' },
+                question: 'Which is SHORTER?',
+                correct: 'Toothpick',
+                visualClasses: ['longer-item', 'shorter-item']
+            },
+            // Heavier / Lighter
+            {
+                type: 'weight',
+                item1: { name: 'Balloon', emoji: '🎈' },
+                item2: { name: 'Rock', emoji: '🪨' },
+                question: 'Which is HEAVIER?',
+                correct: 'Rock',
+                visualClasses: ['lighter-item', 'heavier-item']
+            },
+            {
+                type: 'weight',
+                item1: { name: 'Feather', emoji: '🪶' },
+                item2: { name: 'Brick', emoji: '🧱' },
+                question: 'Which is LIGHTER?',
+                correct: 'Feather',
+                visualClasses: ['lighter-item', 'heavier-item']
+            },
+            {
+                type: 'weight',
+                item1: { name: 'Chick', emoji: '🐥' },
+                item2: { name: 'Elephant', emoji: '🐘' },
+                question: 'Which is HEAVIER?',
+                correct: 'Elephant',
+                visualClasses: ['lighter-item', 'heavier-item']
+            },
+            {
+                type: 'weight',
+                item1: { name: 'Apple', emoji: '🍎' },
+                item2: { name: 'Watermelon', emoji: '🍉' },
+                question: 'Which is HEAVIER?',
+                correct: 'Watermelon',
+                visualClasses: ['lighter-item', 'heavier-item']
+            },
+        ];
+
+        // Get DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const playAgainScreen = document.getElementById('playAgainScreen');
+        const questionText = document.getElementById('questionText');
+        const itemsDisplay = document.getElementById('itemsDisplay');
+        const answersArea = document.getElementById('answersArea');
+        const walletDisplay = document.getElementById('wallet');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const finalWalletMessage = document.getElementById('finalWalletMessage');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+
+        // Initialize Tone.js for simple sound effects
+        const correctSound = new Tone.Synth().toDestination();
+        const incorrectSound = new Tone.Synth().toDestination();
+        const winSound = new Tone.MembraneSynth().toDestination();
+
+        // Sound settings
+        correctSound.oscillator.type = "sine";
+        incorrectSound.oscillator.type = "sawtooth";
+        winSound.octaves = 10;
+        winSound.pitchDecay = 0.05;
+
+        /**
+         * Plays a short "correct" sound.
+         */
+        function playCorrectSound() {
+            correctSound.triggerAttackRelease("C5", "8n");
+        }
+
+        /**
+         * Plays a short "incorrect" sound.
+         */
+        function playIncorrectSound() {
+            incorrectSound.triggerAttackRelease("C3", "8n");
+        }
+
+        /**
+         * Plays a celebratory sound.
+         */
+        function playWinSound() {
+            winSound.triggerAttackRelease("C4", "2n");
+        }
+
+        /**
+         * Shuffles an array randomly.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // ES6 swap
+            }
+            return array;
+        }
+
+        /**
+         * Generates a new game round: displays two items for comparison.
+         */
+        function generateRound() {
+            // Check if all rounds are completed
+            if (roundCount >= totalRounds) {
+                endGame();
+                return; // Stop generating new round if game is over
+            }
+
+            // Clear previous content
+            itemsDisplay.innerHTML = '';
+            answersArea.innerHTML = '';
+            feedbackMessage.classList.remove('show', 'correct', 'incorrect'); // Hide previous feedback
+
+            // Choose a random scenario
+            const scenario = measurementScenarios[Math.floor(Math.random() * measurementScenarios.length)];
+            currentCorrectAnswer = scenario.correct; // Store the correct answer (item name)
+            questionText.textContent = scenario.question; // Display the question
+
+            // Create and display item cards
+            const items = [scenario.item1, scenario.item2];
+            // Randomly decide which item goes on left/right for variety
+            if (Math.random() < 0.5) {
+                items.reverse();
+            }
+
+            items.forEach((item, index) => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+
+                // Apply visual class based on scenario type and correctness
+                if (scenario.type === 'length') {
+                    if (item.name === scenario.correct) {
+                        itemCard.classList.add(scenario.question.includes('LONGER') ? 'longer-item' : 'shorter-item');
+                    } else {
+                        itemCard.classList.add(scenario.question.includes('LONGER') ? 'shorter-item' : 'longer-item');
+                    }
+                } else if (scenario.type === 'weight') {
+                    if (item.name === scenario.correct) {
+                        itemCard.classList.add(scenario.question.includes('HEAVIER') ? 'heavier-item' : 'lighter-item');
+                    } else {
+                        itemCard.classList.add(scenario.question.includes('HEAVIER') ? 'lighter-item' : 'heavier-item');
+                    }
+                }
+
+
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'emoji';
+                emojiSpan.textContent = item.emoji;
+                itemCard.appendChild(emojiSpan);
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'item-name';
+                nameSpan.textContent = item.name;
+                itemCard.appendChild(nameSpan);
+
+                itemsDisplay.appendChild(itemCard);
+            });
+
+
+            // Create answer buttons using the names of the items
+            const answerChoices = [scenario.item1.name, scenario.item2.name];
+            shuffleArray(answerChoices); // Shuffle the choices
+
+            answerChoices.forEach(choice => {
+                const button = document.createElement('button');
+                button.className = 'answer-button';
+                button.textContent = choice;
+                button.dataset.value = choice; // Store the item name as the value
+                button.addEventListener('click', handleAnswerClick);
+                answersArea.appendChild(button);
+            });
+
+            roundCount++; // Increment round count after successfully generating the round
+        }
+
+        /**
+         * Handles the click event on an answer button.
+         * @param {Event} event - The click event object.
+         */
+        function handleAnswerClick(event) {
+            const selectedAnswer = event.target.dataset.value;
+
+            // Display feedback message
+            if (selectedAnswer === currentCorrectAnswer) {
+                feedbackMessage.textContent = 'Correct! 🎉';
+                feedbackMessage.classList.add('show', 'correct');
+                playCorrectSound();
+                wallet += moneyPerCorrectAnswer; // Add fixed money for correct answer
+            } else {
+                feedbackMessage.textContent = `Lost $${moneyPerCorrectAnswer.toFixed(2)}! 💸`; // Indicate money lost
+                feedbackMessage.classList.add('show', 'incorrect');
+                playIncorrectSound();
+                // Deduct money, ensuring wallet doesn't go below zero
+                wallet = Math.max(0, wallet - moneyPerCorrectAnswer);
+            }
+            // Update wallet display with two decimal places
+            walletDisplay.textContent = wallet.toFixed(2);
+
+            // Disable buttons temporarily to prevent multiple clicks
+            document.querySelectorAll('.answer-button').forEach(button => button.disabled = true);
+
+            // Hide feedback message and generate new round after a short delay
+            setTimeout(() => {
+                feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+                document.querySelectorAll('.answer-button').forEach(button => button.disabled = false); // Re-enable buttons
+                generateRound(); // Move to the next round (which handles round count logic)
+            }, 1500); // 1.5 seconds delay
+        }
+
+        /**
+         * Initializes the game by showing the start screen.
+         */
+        function initializeGame() {
+            wallet = 0; // Reset wallet
+            walletDisplay.textContent = wallet.toFixed(2); // Display as currency
+            startScreen.style.display = 'flex';
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'none';
+            roundCount = 0; // Ensure round count is reset on initial page load
+        }
+
+        /**
+         * Starts the game, hiding the start screen and showing the game screen.
+         */
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            playAgainScreen.style.display = 'none';
+            wallet = 0; // Reset wallet for a new game
+            walletDisplay.textContent = wallet.toFixed(2);
+            roundCount = 0; // IMPORTANT: Reset round count when starting a new game
+            generateRound(); // Start the first round
+        }
+
+        /**
+         * Displays the final wallet amount and play again button.
+         */
+        function endGame() {
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'flex';
+            // Update final message to show wallet amount
+            finalWalletMessage.textContent = `Great job! You earned $${wallet.toFixed(2)}!`;
+            playWinSound(); // Play a win sound at the end of the game
+        }
+
+        // Event Listeners for game control buttons
+        startButton.addEventListener('click', startGame);
+        playAgainButton.addEventListener('click', startGame); // Play again also just starts a new game
+
+        // Initialize the game when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>
+
