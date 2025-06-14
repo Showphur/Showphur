@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Shape Challenge! 🔷🔺</title>
+   <title>Counting Stars! ⭐</title>
    <!-- Google Fonts - Inter for a clean, friendly look -->
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
    <!-- Tone.js for simple sound effects -->
@@ -11,14 +11,15 @@
    <style>
        /* CSS Variables for easy theme changes */
        :root {
-           --primary-bg: #FFEBCD; /* Blanched Almond - warm, inviting */
+           --primary-bg: #87CEEB; /* Sky Blue */
            --secondary-bg: #FFFFFF; /* White */
            --text-color: #333333; /* Dark Grey */
-           --button-bg: #6A5ACD; /* Slate Blue - calming, distinct */
-           --button-hover-bg: #483D8B; /* Darker Slate Blue */
+           --button-bg: #4CAF50; /* Green */
+           --button-hover-bg: #45a049;
            --button-text-color: white;
            --success-color: #28a745; /* Bright Green */
            --error-color: #dc3545; /* Red */
+           --star-color: #FFD700; /* Gold */
            --shadow-color: rgba(0, 0, 0, 0.2);
            --border-radius: 12px;
            --font-family: 'Inter', sans-serif;
@@ -33,11 +34,11 @@
            align-items: center;
            min-height: 100vh;
            margin: 0;
-           padding: 20px;
-           box-sizing: border-box;
+           padding: 20px; /* Add padding for mobile view */
+           box-sizing: border-box; /* Include padding in element's total width and height */
            color: var(--text-color);
            text-align: center;
-           overflow-x: hidden;
+           overflow-x: hidden; /* Prevent horizontal scrolling */
        }
 
 
@@ -52,18 +53,18 @@
            flex-direction: column;
            gap: 20px;
            box-sizing: border-box;
-           position: relative;
+           position: relative; /* For absolute positioning of message box */
        }
 
 
        h1 {
            color: var(--text-color);
            margin-bottom: 10px;
-           font-size: 2.2em;
+           font-size: 2.2em; /* Larger for kids */
        }
 
 
-       .wallet-board {
+       .wallet-board { /* Renamed from .score-board */
            font-size: 1.2em;
            font-weight: bold;
            color: var(--text-color);
@@ -71,21 +72,29 @@
 
 
        .question-area {
-           min-height: 150px;
+           min-height: 150px; /* Ensure space for stars */
            display: flex;
+           flex-wrap: wrap; /* Allow stars to wrap */
            justify-content: center;
            align-items: center;
-           font-size: 5em; /* Larger font for shape emoji */
-           background-color: #F8F8FF; /* Ghost White */
+           gap: 15px; /* Space between stars */
+           background-color: #f0f8ff; /* Light blue background for question area */
            border-radius: var(--border-radius);
            padding: 20px;
            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
        }
 
 
+       .star {
+           font-size: 3em; /* Large star emoji */
+           line-height: 1; /* Remove extra space around emoji */
+           cursor: default; /* No interaction needed */
+       }
+
+
        .answers-area {
            display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+           grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
            gap: 15px;
        }
 
@@ -95,15 +104,15 @@
            color: var(--button-text-color);
            border: none;
            padding: 15px 25px;
-           font-size: 1.5em;
+           font-size: 1.5em; /* Large font for easy tapping */
            font-weight: bold;
            border-radius: var(--border-radius);
            cursor: pointer;
            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
            box-shadow: 0 5px 10px var(--shadow-color);
            letter-spacing: 1px;
-           position: relative;
-           overflow: hidden;
+           position: relative; /* For hover effects */
+           overflow: hidden; /* For ripple effect */
        }
 
 
@@ -180,7 +189,7 @@
 
 
        .start-button, .play-again-button {
-           background-color: #007bff;
+           background-color: #007bff; /* Blue */
            color: white;
            border: none;
            padding: 15px 30px;
@@ -214,8 +223,8 @@
            h1 {
                font-size: 1.8em;
            }
-           .question-area {
-               font-size: 4em; /* Adjust emoji size for small screens */
+           .star {
+               font-size: 2.5em;
            }
            .answer-button {
                font-size: 1.2em;
@@ -235,13 +244,14 @@
 </head>
 <body>
    <div class="game-container" id="gameContainer">
-       <h1>Shape Challenge! 🔷🔺</h1>
+       <h1>Counting Stars! ⭐</h1>
+       <!-- Changed from score-board to wallet-board -->
        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
 
 
        <!-- Start Screen -->
        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
-           <p style="font-size: 1.2em; text-align: center;">Can you identify all the shapes and earn some money?</p>
+           <p style="font-size: 1.2em; text-align: center;">Help your little one learn counting and earn some dollars!</p>
            <button class="start-button" id="startButton">Start Game!</button>
        </div>
 
@@ -249,10 +259,10 @@
        <!-- Game Screen (initially hidden) -->
        <div id="gameScreen" style="display: none;">
            <div class="question-area" id="questionArea">
-               <!-- Shape emoji/symbol will be dynamically added here -->
+               <!-- Stars will be dynamically added here -->
            </div>
            <div class="answers-area" id="answersArea">
-               <!-- Answer buttons (shape names) will be dynamically added here -->
+               <!-- Answer buttons will be dynamically added here -->
            </div>
        </div>
 
@@ -272,25 +282,11 @@
    <script>
        // Game state variables
        let wallet = 0;
-       let currentCorrectShapeName = ''; // Stores the name of the correct shape
-       const moneyPerShape = 2.00; // Fixed amount earned/lost per round
-       let roundCount = 0;
-       const totalRounds = 10; // Number of questions per game
+       let currentCorrectAnswer = 0;
+       const maxStars = 10; // Max number of stars for counting (can be increased later)
        const numberOfChoices = 4; // Number of answer buttons
-
-
-       // Define shapes with their names and emojis
-       const shapes = [
-           { name: "Circle", display: "🔴" },
-           { name: "Square", display: "🟦" },
-           { name: "Triangle", display: "▲" },
-           { name: "Rectangle", display: "▭" }, // Unicode rectangle
-           { name: "Star", display: "⭐" },
-           { name: "Heart", display: "❤️" },
-           { name: "Cube", display: "🧊" },
-           { name: "Sphere", display: "⚽" }, // Soccer ball emoji to represent sphere
-           { name: "Cone", display: "🍦" } // Ice cream cone emoji to represent cone
-       ];
+       let roundCount = 0; // Initialize round count
+       const totalRounds = 10; // Define total rounds
 
 
        // Get DOM elements
@@ -312,7 +308,7 @@
        const winSound = new Tone.MembraneSynth().toDestination();
 
 
-       // Sound settings
+       // Sound settings (simple beeps/chimes)
        correctSound.oscillator.type = "sine";
        incorrectSound.oscillator.type = "sawtooth";
        winSound.octaves = 10;
@@ -344,6 +340,17 @@
 
 
        /**
+        * Generates a random integer within a specified range (inclusive).
+        * @param {number} min - The minimum value.
+        * @param {number} max - The maximum value.
+        * @returns {number} A random integer.
+        */
+       function getRandomInt(min, max) {
+           return Math.floor(Math.random() * (max - min + 1)) + min;
+       }
+
+
+       /**
         * Shuffles an array randomly.
         * @param {Array} array - The array to shuffle.
         * @returns {Array} The shuffled array.
@@ -358,7 +365,7 @@
 
 
        /**
-        * Generates a new game round: displays a shape and answer choices.
+        * Generates a new game round: displays stars and answer choices.
         * Also manages the round count and triggers end game.
         */
        function generateRound() {
@@ -375,25 +382,31 @@
            feedbackMessage.classList.remove('show', 'correct', 'incorrect'); // Hide previous feedback
 
 
-           // Choose a random shape for the question
-           const correctShape = shapes[Math.floor(Math.random() * shapes.length)];
-           currentCorrectShapeName = correctShape.name; // Store the correct shape name
+           // Determine the number of stars for this round
+           const numberOfStars = getRandomInt(1, maxStars);
+           currentCorrectAnswer = numberOfStars; // Store the correct answer
 
 
-           // Display the shape emoji
-           questionArea.textContent = correctShape.display;
+           // Add stars to the question area
+           for (let i = 0; i < numberOfStars; i++) {
+               const star = document.createElement('span');
+               star.className = 'star';
+               star.textContent = '⭐'; // Using a star emoji
+               questionArea.appendChild(star);
+           }
 
 
-           // Generate answer choices (shape names)
+           // Generate answer choices
            const answerChoices = new Set();
-           answerChoices.add(currentCorrectShapeName); // Always include the correct answer
+           answerChoices.add(currentCorrectAnswer); // Always include the correct answer
 
 
-           // Add incorrect answers, ensuring they are unique
+           // Add incorrect answers, ensuring they are unique and within a reasonable range
            while (answerChoices.size < numberOfChoices) {
-               const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-               if (!answerChoices.has(randomShape.name)) {
-                   answerChoices.add(randomShape.name);
+               let potentialAnswer = getRandomInt(1, maxStars + 3); // Slightly larger range for incorrect answers
+               // Ensure potentialAnswer is not the correct answer and not already in the set
+               if (!answerChoices.has(potentialAnswer) && Math.abs(potentialAnswer - currentCorrectAnswer) > 0) {
+                    answerChoices.add(potentialAnswer);
                }
            }
 
@@ -407,7 +420,7 @@
                const button = document.createElement('button');
                button.className = 'answer-button';
                button.textContent = choice;
-               button.dataset.value = choice; // Store the value (shape name) in a data attribute
+               button.dataset.value = choice; // Store the value in a data attribute
                button.addEventListener('click', handleAnswerClick);
                answersArea.appendChild(button);
            });
@@ -422,21 +435,21 @@
         * @param {Event} event - The click event object.
         */
        function handleAnswerClick(event) {
-           const selectedAnswer = event.target.dataset.value;
+           const selectedAnswer = parseInt(event.target.dataset.value);
 
 
            // Display feedback message
-           if (selectedAnswer === currentCorrectShapeName) {
+           if (selectedAnswer === currentCorrectAnswer) {
                feedbackMessage.textContent = 'Correct! 🎉';
                feedbackMessage.classList.add('show', 'correct');
                playCorrectSound();
-               wallet += moneyPerShape; // Add fixed money for correct answer
+               wallet += currentCorrectAnswer; // Add money based on the number of stars counted
            } else {
-               feedbackMessage.textContent = `Lost $${moneyPerShape.toFixed(2)}! 💸`; // Indicate money lost
+               feedbackMessage.textContent = `Lost $${currentCorrectAnswer.toFixed(2)}! 💸`; // Indicate money lost
                feedbackMessage.classList.add('show', 'incorrect');
                playIncorrectSound();
                // Deduct money, ensuring wallet doesn't go below zero
-               wallet = Math.max(0, wallet - moneyPerShape);
+               wallet = Math.max(0, wallet - currentCorrectAnswer);
            }
            // Update wallet display with two decimal places
            walletDisplay.textContent = wallet.toFixed(2);
