@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Tech Builder! 🤖🚀</title>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Tone.js for simple sound effects -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        /* CSS Variables for easy theme changes */
+        :root {
+            --primary-bg: #E0FFFF; /* Light Cyan - futuristic */
+            --secondary-bg: #FFFFFF; /* White */
+            --text-color: #333333; /* Dark Grey */
+            --button-bg: #6A5ACD; /* Slate Blue */
+            --button-hover-bg: #483D8B; /* Darker Slate Blue */
+            --success-color: #28a745; /* Bright Green */
+            --error-color: #dc3545; /* Red */
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --border-radius: 12px;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--primary-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: var(--text-color);
+            text-align: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            background-color: var(--secondary-bg);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px var(--shadow-color);
+            padding: 30px;
+            width: 100%;
+            max-width: 800px; /* Wider for building area */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+
+        .wallet-board {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .build-area {
+            position: relative;
+            width: 100%;
+            height: 450px; /* Ample space for building */
+            background-color: #F0F8FF; /* Alice Blue - soft background */
+            border-radius: var(--border-radius);
+            border: 2px dashed #9ACD32; /* Yellow Green - inviting border */
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .build-area .instruction-text {
+            position: absolute;
+            top: 40px; /* Adjusted: slightly lower for more clear space above components */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #2F4F4F;
+            z-index: 5;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 8px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            width: calc(100% - 40px); /* Adjust width to fit container with padding */
+            box-sizing: border-box; /* Include padding in width calculation */
+            text-wrap: balance; /* Tries to create more balanced lines if supported */
+        }
+
+        .build-base {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            background-color: #87CEFA; /* Light Sky Blue - for base */
+            border: 3px solid #1E90FF; /* Dodger Blue */
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5em; /* Large emoji for base */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+        .build-base.active-drop { /* Highlight when ready to accept drop */
+            border-color: var(--success-color);
+            box-shadow: 0 0 20px rgba(40, 167, 69, 0.7);
+        }
+        .build-base .emoji {
+            opacity: 0.3; /* Faded initial base emoji */
+            transition: opacity 0.3s ease;
+        }
+
+        .component-icon {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background-color: #F8F8FF;
+            border: 2px solid #D3D3D3;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+            z-index: 10; /* Above base */
+        }
+
+        .component-icon:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+        .component-icon.dragging {
+            cursor: grabbing;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            opacity: 0.8;
+            transition: none; /* Disable transition during drag */
+        }
+        .component-icon .emoji {
+            font-size: 2.5em;
+            line-height: 1;
+        }
+        .component-icon .name {
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 3px;
+            text-align: center;
+        }
+
+        /* Positions for components (initial setup) - Adjusted for more vertical space */
+        #processorComponent { top: 180px; left: 30px; } /* Increased from 120px */
+        #batteryComponent { top: 180px; left: 130px; } /* Increased from 120px */
+        #sensorComponent { top: 180px; left: 230px; } /* Increased from 120px */
+        #solarPanelComponent { top: 180px; left: 330px; } /* Increased from 120px */
+        #aiChipComponent { top: 180px; right: 30px; } /* Increased from 120px */
+        #powerButton { /* Not a draggable component, but an interactive element */
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 100px;
+            height: 60px;
+            background-color: #FF6347; /* Tomato */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+            z-index: 5;
+        }
+        #powerButton:hover {
+            background-color: #FF4500; /* Orange Red */
+            transform: translateY(-2px);
+        }
+
+        /* Attached components visual */
+        .attached-component {
+            position: absolute;
+            font-size: 2em; /* Smaller than original icon, placed on base */
+            line-height: 1;
+            z-index: 2; /* Below new components, above base emoji */
+            opacity: 0.9;
+            transition: all 0.3s ease;
+        }
+        /* These are relative to the build-base, so they don't need major changes */
+        #attachedProcessor { top: 60%; left: 30%; }
+        #attachedBattery { top: 60%; left: 70%; }
+        #attachedSensor { top: 40%; left: 50%; } /* Example positioning */
+        #attachedAiChip { top: 20%; left: 50%; } /* Example positioning */
+
+
+        /* General UI */
+        .start-button, .play-again-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.8em;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 5px 10px var(--shadow-color);
+            margin-top: 20px;
+        }
+
+        .start-button:hover, .play-again-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px var(--shadow-color);
+        }
+
+        .feedback-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            font-size: 2em;
+            font-weight: bold;
+            color: var(--secondary-bg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            z-index: 100; /* Ensure it's on top of everything */
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+            min-width: 250px;
+        }
+
+        .feedback-message.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .feedback-message.correct {
+            background-color: var(--success-color);
+        }
+
+    .feedback-message.incorrect {
+        background-color: var(--error-color);
+    }
+
+    .start-button, .play-again-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1.8em;
+        font-weight: bold;
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 5px 10px var(--shadow-color);
+        margin-top: 20px;
+    }
+
+    .start-button:hover, .play-again-button:hover {
+        background-color: #0056b3;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px var(--shadow-color);
+    }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.8em;
+            }
+            .build-area {
+                height: 350px;
+            }
+            .build-area .instruction-text {
+                font-size: 1.2em;
+                white-space: normal; /* Allow instruction text to wrap on smaller screens */
+                padding: 5px 10px;
+                top: 30px; /* Adjusted further down for smaller screens */
+            }
+            .build-base {
+                width: 150px;
+                height: 150px;
+                font-size: 4em;
+            }
+            .component-icon {
+                width: 70px;
+                height: 70px;
+                font-size: 0.7em;
+                padding: 5px;
+            }
+            /* Adjusted positions for 768px breakpoint */
+            #processorComponent { top: 140px; left: 10px; } /* Adjusted from 100px */
+            #batteryComponent { top: 140px; left: 90px; } /* Adjusted from 100px */
+            #sensorComponent { top: 140px; left: 170px; } /* Adjusted from 100px */
+            #solarPanelComponent { top: 140px; left: 250px; } /* Adjusted from 100px */
+            #aiChipComponent { top: 220px; left: 10px; } /* Adjusted from 180px */
+            #powerButton {
+                bottom: 10px;
+                right: 10px;
+                width: 80px;
+                height: 50px;
+                font-size: 1em;
+            }
+            .attached-component {
+                font-size: 1.5em;
+            }
+            .start-button, .play-again-button {
+                font-size: 1.5em;
+                padding: 12px 25px;
+            }
+        }
+        @media (max-width: 480px) {
+            .build-area {
+                height: 300px;
+            }
+            .build-area .instruction-text {
+                font-size: 1em;
+                top: 20px; /* Adjusted for very small screens */
+            }
+            .component-icon {
+                width: 60px;
+                height: 60px;
+                font-size: 0.6em;
+            }
+             /* Adjusted positions for 480px breakpoint */
+            #processorComponent { top: 120px; left: 5px; } /* Adjusted from 100px */
+            #batteryComponent { top: 120px; left: 75px; } /* Adjusted from 100px */
+            #sensorComponent { top: 120px; left: 145px; } /* Adjusted from 100px */
+            #solarPanelComponent { top: 120px; left: 215px; } /* Adjusted from 100px */
+            #aiChipComponent { top: 190px; left: 5px; } /* Adjusted from 165px */
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <h1>Future Tech Builder! 🤖🚀</h1>
+        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
+
+        <!-- Start Screen -->
+        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p style="font-size: 1.2em; text-align: center;">Welcome, future engineer! Follow the instructions to build amazing technology and learn about AI!</p>
+            <button class="start-button" id="startButton">Start Building!</button>
+        </div>
+
+        <!-- Game Screen (initially hidden) -->
+        <div id="gameScreen" style="display: none;">
+            <div class="build-area" id="buildArea">
+                <div class="instruction-text" id="instructionText"></div>
+
+                <!-- Main Build Base -->
+                <div class="build-base" id="mainBuildBase">
+                    <span class="emoji" id="baseEmoji">🤖</span>
+                    <!-- Attached components will be cloned and appended here -->
+                </div>
+
+                <!-- Component Icons (draggable) -->
+                <div class="component-icon draggable" id="processorComponent" data-component-name="Processor" data-emoji="⚙️">
+                    <span class="emoji">⚙️</span>
+                    <span class="name">Processor</span>
+                </div>
+                <div class="component-icon draggable" id="batteryComponent" data-component-name="Battery" data-emoji="🔋">
+                    <span class="emoji">🔋</span>
+                    <span class="name">Battery</span>
+                </div>
+                <div class="component-icon draggable" id="sensorComponent" data-component-name="Sensor" data-emoji="📡">
+                    <span class="emoji">📡</span>
+                    <span class="name">Sensor</span>
+                </div>
+                <div class="component-icon draggable" id="solarPanelComponent" data-component-name="Solar Panel" data-emoji="☀️">
+                    <span class="emoji">☀️</span>
+                    <span class="name">Solar Panel</span>
+                </div>
+                <div class="component-icon draggable" id="aiChipComponent" data-component-name="AI Chip" data-emoji="🧠">
+                    <span class="emoji">🧠</span>
+                    <span class="name">AI Chip</span>
+                </div>
+
+                <!-- Power Button (clickable) -->
+                <button id="powerButton">Power On</button>
+
+            </div>
+        </div>
+
+        <!-- Feedback message -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- Play Again Screen (initially hidden) -->
+        <div id="playAgainScreen" style="display: none; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
+            <p id="finalWalletMessage" style="font-size: 1.5em; font-weight: bold;"></p>
+            <button class="play-again-button" id="playAgainButton">Build Again!</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state variables
+        let wallet = 0;
+        const moneyPerCorrectAction = 4.00; // Amount earned/lost per step
+        let roundCount = 0;
+        const totalRounds = 10; // Number of tasks per game
+
+        let currentTask = {}; // Stores the current task, correct action, and sub-step progress
+        let isDragging = false;
+        let draggedElement = null;
+        let initialMouseX, initialMouseY, initialElementX, initialElementY;
+
+        // Get DOM elements
+        const startScreen = document.getElementById('startScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const playAgainScreen = document.getElementById('playAgainScreen');
+        const walletDisplay = document.getElementById('wallet');
+        const feedbackMessage = document.getElementById('feedbackMessage');
+        const finalWalletMessage = document.getElementById('finalWalletMessage');
+        const startButton = document.getElementById('startButton');
+        const playAgainButton = document.getElementById('playAgainButton');
+
+        const buildArea = document.getElementById('buildArea');
+        const instructionText = document.getElementById('instructionText');
+        const mainBuildBase = document.getElementById('mainBuildBase');
+        const baseEmoji = document.getElementById('baseEmoji');
+
+        const processorComponent = document.getElementById('processorComponent');
+        const batteryComponent = document.getElementById('batteryComponent');
+        const sensorComponent = document.getElementById('sensorComponent');
+        const solarPanelComponent = document.getElementById('solarPanelComponent');
+        const aiChipComponent = document.getElementById('aiChipComponent');
+        const powerButton = document.getElementById('powerButton');
+
+        // Initialize Tone.js for simple sound effects
+        const correctSound = new Tone.Synth().toDestination();
+        const incorrectSound = new Tone.Synth().toDestination();
+        const winSound = new Tone.MembraneSynth().toDestination();
+
+        // Sound settings
+        correctSound.oscillator.type = "sine";
+        incorrectSound.oscillator.type = "sawtooth";
+        winSound.octaves = 10;
+        winSound.pitchDecay = 0.05;
+
+        /**
+         * Plays a short "correct" sound.
+         */
+        function playCorrectSound() {
+            correctSound.triggerAttackRelease("C5", "8n");
+        }
+
+        /**
+         * Plays a short "incorrect" sound.
+         */
+        function playIncorrectSound() {
+            incorrectSound.triggerAttackRelease("C3", "8n");
+        }
+
+        /**
+         * Plays a celebratory sound.
+         */
+        function playWinSound() {
+            winSound.triggerAttackRelease("C4", "2n");
+        }
+
+        /**
+         * Shuffles an array randomly.
+         * @param {Array} array - The array to shuffle.
+         * @returns {Array} The shuffled array.
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // ES6 swap
+            }
+            return array;
+        }
+
+        // --- Drag and Drop Logic ---
+        function handleDrag(event) {
+            if (!isDragging || !draggedElement) return;
+
+            event.preventDefault(); // Prevent text selection, scrolling on mobile, etc.
+
+            const currentX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+            const currentY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
+
+            const deltaX = currentX - initialMouseX;
+            const deltaY = currentY - initialMouseY;
+
+            let newX = initialElementX + deltaX;
+            let newY = initialElementY + deltaY;
+
+            // Constrain movement within build area bounds
+            const maxX = buildArea.offsetWidth - draggedElement.offsetWidth;
+            const maxY = buildArea.offsetHeight - draggedElement.offsetHeight;
+            newX = Math.max(0, Math.min(newX, maxX));
+            newY = Math.max(0, Math.min(newY, maxY));
+
+            draggedElement.style.left = `${newX}px`;
+            draggedElement.style.top = `${newY}px`;
+        }
+
+        function handleDragEnd(event) {
+            if (!isDragging || !draggedElement) return;
+
+            isDragging = false;
+            draggedElement.classList.remove('dragging');
+            mainBuildBase.classList.remove('active-drop'); // Remove highlight from drop target
+
+            buildArea.onmousemove = null;
+            buildArea.onmouseup = null;
+            buildArea.ontouchmove = null;
+            buildArea.ontouchend = null;
+
+            // Check for drop target collision
+            const droppedElementRect = draggedElement.getBoundingClientRect();
+            const mainBuildBaseRect = mainBuildBase.getBoundingClientRect();
+
+            let isCorrectDrop = false;
+            if (
+                droppedElementRect.left < mainBuildBaseRect.right &&
+                droppedElementRect.right > mainBuildBaseRect.left &&
+                droppedElementRect.top < mainBuildBaseRect.bottom &&
+                droppedElementRect.bottom > mainBuildBaseRect.top
+            ) {
+                // If it's a drag_drop_component action for the current step and the dropped element is the target
+                const currentStep = currentTask.steps[currentTask.subStep];
+                if (currentTask.correctAction === 'multi_step' && currentStep.action === 'drag_drop_component' && draggedElement.id === currentStep.targetElementId) {
+                    isCorrectDrop = true;
+                }
+            }
+
+            if (isCorrectDrop) {
+                // Hide the original component icon
+                draggedElement.style.display = 'none';
+
+                // Visually attach the component to the base
+                const attachedEmoji = document.createElement('span');
+                attachedEmoji.className = 'attached-component';
+                attachedEmoji.textContent = draggedElement.dataset.emoji;
+                // Position based on component type for visual distinction
+                if (draggedElement.id === 'processorComponent') {
+                    attachedEmoji.style.left = '30%';
+                    attachedEmoji.style.top = '60%';
+                } else if (draggedElement.id === 'batteryComponent') {
+                    attachedEmoji.style.left = '70%';
+                    attachedEmoji.style.top = '60%';
+                } else if (draggedElement.id === 'sensorComponent') {
+                    attachedEmoji.style.left = '50%';
+                    attachedEmoji.style.top = '40%';
+                    attachedEmoji.style.transform = 'translateX(-50%)';
+                } else if (draggedElement.id === 'solarPanelComponent') {
+                    attachedEmoji.style.left = '50%';
+                    attachedEmoji.style.top = '20%';
+                    attachedEmoji.style.transform = 'translateX(-50%)';
+                } else if (draggedElement.id === 'aiChipComponent') {
+                    attachedEmoji.style.left = '50%';
+                    attachedEmoji.style.top = '80%';
+                    attachedEmoji.style.transform = 'translateX(-50%)';
+                }
+                mainBuildBase.appendChild(attachedEmoji);
+                baseEmoji.style.opacity = '0.1'; // Make base emoji even more faded
+
+                // Advance the multi-step task
+                const currentStep = currentTask.steps[currentTask.subStep];
+                currentTask.subStep++; // Advance sub-step
+                
+                if (currentTask.subStep < currentTask.steps.length) {
+                    instructionText.textContent = currentStep.nextInstruction; // Update instruction
+                    // Prepare for next step's event listeners
+                    const nextStep = currentTask.steps[currentTask.subStep];
+                    if (nextStep.action === 'click_icon') {
+                        document.getElementById(nextStep.targetElementId).onclick = handleStepClick;
+                    } else if (nextStep.action === 'drag_drop_component') {
+                         document.getElementById(nextStep.targetElementId).onmousedown = handleDragStart;
+                         document.getElementById(nextStep.targetElementId).ontouchstart = handleDragStart;
+                         mainBuildBase.classList.add('active-drop'); // Highlight base for next drag
+                    }
+                    // Provide feedback for successful intermediate step
+                    feedbackMessage.textContent = 'Good! Next piece!';
+                    feedbackMessage.classList.add('show', 'correct');
+                    playCorrectSound();
+                    wallet += moneyPerCorrectAction; // Reward for successful intermediate step
+                    walletDisplay.textContent = wallet.toFixed(2);
+                    setTimeout(() => {
+                        feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+                    }, 1500);
+
+                } else {
+                    // All steps completed
+                    handleOutcome(true); // Final step completed
+                }
+
+            } else {
+                handleOutcome(false); // Incorrect drop
+                // Snap back to original position
+                draggedElement.style.transition = 'left 0.3s ease-out, top 0.3s ease-out';
+                draggedElement.style.left = `${initialElementX}px`;
+                draggedElement.style.top = `${initialElementY}px`;
+                setTimeout(() => {
+                    if (draggedElement) draggedElement.style.transition = 'none';
+                }, 300);
+            }
+            draggedElement = null;
+        }
+
+
+        function handleDragStart(event) {
+            const currentStep = currentTask.steps[currentTask.subStep];
+            if (currentTask.correctAction === 'multi_step' && currentStep.action === 'drag_drop_component' && event.currentTarget.id === currentStep.targetElementId) {
+                isDragging = true;
+                draggedElement = event.currentTarget;
+                draggedElement.classList.add('dragging');
+
+                initialMouseX = event.clientX || (event.touches ? event.touches[0].clientX : 0);
+                initialMouseY = event.clientY || (event.touches ? event.touches[0].clientY : 0);
+                initialElementX = draggedElement.offsetLeft;
+                initialElementY = draggedElement.offsetTop;
+
+                mainBuildBase.classList.add('active-drop'); // Highlight drop target
+
+                buildArea.onmousemove = handleDrag;
+                buildArea.onmouseup = handleDragEnd;
+                buildArea.ontouchmove = handleDrag;
+                buildArea.ontouchend = handleDragEnd;
+            } else {
+                handleOutcome(false, false); // Incorrect drag start for this task/step (not final)
+            }
+        }
+
+        /**
+         * Handles click events for elements within multi-step tasks (e.g., power button).
+         * @param {Event} event
+         */
+        function handleStepClick(event) {
+            const clickedElementId = event.currentTarget.id;
+            const currentStep = currentTask.steps[currentTask.subStep];
+
+            if (currentTask.correctAction === 'multi_step' && currentStep.action === 'click_icon' && clickedElementId === currentStep.targetElementId) {
+                // If it's the last step
+                currentTask.subStep++;
+                if (currentTask.subStep === currentTask.steps.length) {
+                    handleOutcome(true); // Final step completed
+                } else {
+                    // Intermediate click step (if any more complex tasks are added later)
+                    instructionText.textContent = currentStep.nextInstruction;
+                    feedbackMessage.textContent = 'Good! Next step!';
+                    feedbackMessage.classList.add('show', 'correct');
+                    playCorrectSound();
+                    wallet += moneyPerCorrectAction;
+                    walletDisplay.textContent = wallet.toFixed(2);
+                    setTimeout(() => {
+                        feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+                    }, 1500);
+                    // Set up listener for the next step, if it exists
+                    const nextStep = currentTask.steps[currentTask.subStep];
+                    if (nextStep && nextStep.action === 'drag_drop_component') {
+                         document.getElementById(nextStep.targetElementId).onmousedown = handleDragStart;
+                         document.getElementById(nextStep.targetElementId).ontouchstart = handleDragStart;
+                         mainBuildBase.classList.add('active-drop');
+                    }
+                }
+            } else {
+                handleOutcome(false, false); // Incorrect click for this task/step (not final)
+            }
+        }
+
+
+        // --- Task Definitions ---
+        const tasks = [
+            {
+                id: 'build_robot_core',
+                instruction: 'Assemble the Robot Core: Drag the Processor to the Robot Base, then click the Power Button!',
+                correctAction: 'multi_step',
+                steps: [
+                    { action: 'drag_drop_component', targetElementId: 'processorComponent', nextInstruction: 'Processor attached! Now, click the Power Button.' },
+                    { action: 'click_icon', targetElementId: 'powerButton', nextInstruction: 'Robot Core is online!' }
+                ],
+                setup: () => {
+                    baseEmoji.textContent = '🤖'; // Set base icon for robot
+                    // Show relevant components for this task
+                    processorComponent.style.display = 'flex';
+                    powerButton.style.display = 'block';
+                    // Hide others
+                    batteryComponent.style.display = 'none';
+                    sensorComponent.style.display = 'none';
+                    solarPanelComponent.style.display = 'none';
+                    aiChipComponent.style.display = 'none';
+                    // Ensure power button is not clickable yet
+                    powerButton.onclick = null;
+                    // Reset component positions
+                    processorComponent.style.left = '30px';
+                    processorComponent.style.top = '180px'; /* Adjusted */
+                }
+            },
+            {
+                id: 'upgrade_drone',
+                instruction: 'Upgrade the Drone: First, drag the Sensor to the Drone. Then, drag the Battery to the Drone.',
+                correctAction: 'multi_step',
+                steps: [
+                    { action: 'drag_drop_component', targetElementId: 'sensorComponent', nextInstruction: 'Sensor attached! Now, drag the Battery to the Drone.' },
+                    { action: 'drag_drop_component', targetElementId: 'batteryComponent', nextInstruction: 'Drone upgraded!' }
+                ],
+                setup: () => {
+                    baseEmoji.textContent = '🚁'; // Set base icon for drone
+                    // Show relevant components for this task
+                    sensorComponent.style.display = 'flex';
+                    batteryComponent.style.display = 'flex';
+                    // Hide others
+                    processorComponent.style.display = 'none';
+                    solarPanelComponent.style.display = 'none';
+                    aiChipComponent.style.display = 'none';
+                    powerButton.style.display = 'none';
+                    // Reset component positions
+                    sensorComponent.style.left = '230px';
+                    sensorComponent.style.top = '180px'; /* Adjusted */
+                    batteryComponent.style.left = '130px';
+                    batteryComponent.style.top = '180px'; /* Adjusted */
+                }
+            },
+            {
+                id: 'activate_ai',
+                instruction: 'Activate the AI Console: Drag the AI Chip to the Console, then click Power On.',
+                correctAction: 'multi_step',
+                steps: [
+                    { action: 'drag_drop_component', targetElementId: 'aiChipComponent', nextInstruction: 'AI Chip installed! Now, click Power On.' },
+                    { action: 'click_icon', targetElementId: 'powerButton', nextInstruction: 'AI Console online!' }
+                ],
+                setup: () => {
+                    baseEmoji.textContent = '🖥️'; // Set base icon for console
+                    aiChipComponent.style.display = 'flex';
+                    powerButton.style.display = 'block';
+                    processorComponent.style.display = 'none';
+                    batteryComponent.style.display = 'none';
+                    sensorComponent.style.display = 'none';
+                    solarPanelComponent.style.display = 'none';
+                    powerButton.onclick = null; // Not active yet
+                    aiChipComponent.style.left = '30px';
+                    aiChipComponent.style.top = '180px'; /* Adjusted */
+                }
+            }
+        ];
+
+        let shuffledTasks = [];
+
+        /**
+         * Generates a new game round based on a digital navigation task.
+         */
+        function generateRound() {
+            // Check if all rounds are completed
+            if (roundCount >= totalRounds) {
+                endGame();
+                return; // Stop generating new round if game is over
+            }
+
+            // Shuffle tasks if starting a new game or running out
+            if (shuffledTasks.length === 0) {
+                shuffledTasks = shuffleArray([...tasks]); // Clone to avoid modifying original array
+            }
+
+            currentTask = shuffledTasks.pop(); // Get next task
+            currentTask.subStep = 0; // Reset sub-step for new task
+            instructionText.textContent = currentTask.instruction; // Set initial instruction
+
+            // Reset all elements before setting up for the current task
+            resetBuildArea(); // This clears all existing handlers and elements
+            currentTask.setup(); // This re-attaches handlers and sets up for the current task
+
+            // Attach initial listener for the first step of the current task
+            const firstStep = currentTask.steps[0];
+            if (firstStep.action === 'drag_drop_component') {
+                document.getElementById(firstStep.targetElementId).onmousedown = handleDragStart;
+                document.getElementById(firstStep.targetElementId).ontouchstart = handleDragStart;
+                mainBuildBase.classList.add('active-drop'); // Highlight base for initial drag
+            } else if (firstStep.action === 'click_icon') {
+                document.getElementById(firstStep.targetElementId).onclick = handleStepClick;
+            }
+
+            roundCount++; // Increment round count
+        }
+
+        /**
+         * Resets the build area and all interactive elements to a clean state.
+         */
+        function resetBuildArea() {
+            // Hide all component icons and clear their original positions
+            const allComponents = [processorComponent, batteryComponent, sensorComponent, solarPanelComponent, aiChipComponent];
+            allComponents.forEach(comp => {
+                comp.style.display = 'none';
+                comp.style.left = ''; // Reset position
+                comp.style.top = '';  // Reset position
+                comp.onmousedown = null;
+                comp.ontouchstart = null;
+            });
+
+            // Hide power button and clear its listener
+            powerButton.style.display = 'none';
+            powerButton.onclick = null;
+
+            // Clear any attached components from the base
+            mainBuildBase.querySelectorAll('.attached-component').forEach(el => el.remove());
+            baseEmoji.style.opacity = '0.3'; // Reset base emoji opacity
+
+            // Clear build area's global drag listeners
+            buildArea.onmousemove = null;
+            buildArea.onmouseup = null;
+            buildArea.ontouchmove = null;
+            buildArea.ontouchend = null;
+
+            mainBuildBase.classList.remove('active-drop'); // Remove drop highlight
+        }
+
+        /**
+         * Handles the common logic for correct/incorrect actions.
+         * @param {boolean} isCorrect - True if the action was correct.
+         */
+        function handleOutcome(isCorrect) {
+            if (isCorrect) {
+                feedbackMessage.textContent = 'Success! 🎉';
+                feedbackMessage.classList.add('show', 'correct');
+                playCorrectSound();
+                wallet += moneyPerCorrectAction;
+            } else {
+                feedbackMessage.textContent = `Oops! Lost $${moneyPerCorrectAction.toFixed(2)}! 💸`;
+                feedbackMessage.classList.add('show', 'incorrect');
+                playIncorrectSound();
+                wallet = Math.max(0, wallet - moneyPerCorrectAction);
+            }
+            walletDisplay.textContent = wallet.toFixed(2);
+
+            // Disable interactions temporarily
+            buildArea.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                feedbackMessage.classList.remove('show', 'correct', 'incorrect');
+                buildArea.style.pointerEvents = 'auto'; // Re-enable
+                generateRound(); // Move to next round
+            }, 1500);
+        }
+
+        // --- Game Flow Functions ---
+
+        /**
+         * Initializes the game by showing the start screen.
+         */
+        function initializeGame() {
+            wallet = 0;
+            walletDisplay.textContent = wallet.toFixed(2);
+            startScreen.style.display = 'flex';
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'none';
+            roundCount = 0;
+            resetBuildArea(); // Ensure a clean slate
+            startButton.addEventListener('click', startGame);
+            playAgainButton.addEventListener('click', startGame);
+        }
+
+        /**
+         * Starts the game, hiding the start screen and showing the game screen.
+         */
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            playAgainScreen.style.display = 'none';
+            wallet = 0;
+            walletDisplay.textContent = wallet.toFixed(2);
+            roundCount = 0;
+            shuffledTasks = shuffleArray([...tasks]); // Reset and re-shuffle tasks for new game
+            generateRound(); // Start the first round
+        }
+
+        /**
+         * Displays the final wallet amount and play again button.
+         */
+        function endGame() {
+            gameScreen.style.display = 'none';
+            playAgainScreen.style.display = 'flex';
+            finalWalletMessage.textContent = `Great job! You built ${totalRounds} tech items and earned $${wallet.toFixed(2)}!`;
+            playWinSound();
+        }
+
+        // Initialize the game when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', initializeGame);
+
+    </script>
+</body>
+</html>
+
