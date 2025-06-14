@@ -3,7 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Counting Stars! ⭐</title>
+   <title>Math Challenge! ➕➖</title>
    <!-- Google Fonts - Inter for a clean, friendly look -->
    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
    <!-- Tone.js for simple sound effects -->
@@ -11,15 +11,14 @@
    <style>
        /* CSS Variables for easy theme changes */
        :root {
-           --primary-bg: #87CEEB; /* Sky Blue */
+           --primary-bg: #ADD8E6; /* Light Blue */
            --secondary-bg: #FFFFFF; /* White */
            --text-color: #333333; /* Dark Grey */
-           --button-bg: #4CAF50; /* Green */
-           --button-hover-bg: #45a049;
+           --button-bg: #FFA07A; /* Light Salmon */
+           --button-hover-bg: #FF8C69;
            --button-text-color: white;
            --success-color: #28a745; /* Bright Green */
            --error-color: #dc3545; /* Red */
-           --star-color: #FFD700; /* Gold */
            --shadow-color: rgba(0, 0, 0, 0.2);
            --border-radius: 12px;
            --font-family: 'Inter', sans-serif;
@@ -34,11 +33,11 @@
            align-items: center;
            min-height: 100vh;
            margin: 0;
-           padding: 20px; /* Add padding for mobile view */
-           box-sizing: border-box; /* Include padding in element's total width and height */
+           padding: 20px;
+           box-sizing: border-box;
            color: var(--text-color);
            text-align: center;
-           overflow-x: hidden; /* Prevent horizontal scrolling */
+           overflow-x: hidden;
        }
 
 
@@ -53,18 +52,18 @@
            flex-direction: column;
            gap: 20px;
            box-sizing: border-box;
-           position: relative; /* For absolute positioning of message box */
+           position: relative;
        }
 
 
        h1 {
            color: var(--text-color);
            margin-bottom: 10px;
-           font-size: 2.2em; /* Larger for kids */
+           font-size: 2.2em;
        }
 
 
-       .wallet-board { /* Renamed from .score-board */
+       .wallet-board {
            font-size: 1.2em;
            font-weight: bold;
            color: var(--text-color);
@@ -72,29 +71,22 @@
 
 
        .question-area {
-           min-height: 150px; /* Ensure space for stars */
+           min-height: 150px;
            display: flex;
-           flex-wrap: wrap; /* Allow stars to wrap */
            justify-content: center;
            align-items: center;
-           gap: 15px; /* Space between stars */
-           background-color: #f0f8ff; /* Light blue background for question area */
+           font-size: 3em; /* Larger font for math problem */
+           font-weight: bold;
+           background-color: #f0f8ff;
            border-radius: var(--border-radius);
            padding: 20px;
            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
        }
 
 
-       .star {
-           font-size: 3em; /* Large star emoji */
-           line-height: 1; /* Remove extra space around emoji */
-           cursor: default; /* No interaction needed */
-       }
-
-
        .answers-area {
            display: grid;
-           grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Responsive grid */
+           grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
            gap: 15px;
        }
 
@@ -104,15 +96,15 @@
            color: var(--button-text-color);
            border: none;
            padding: 15px 25px;
-           font-size: 1.5em; /* Large font for easy tapping */
+           font-size: 1.5em;
            font-weight: bold;
            border-radius: var(--border-radius);
            cursor: pointer;
            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
            box-shadow: 0 5px 10px var(--shadow-color);
            letter-spacing: 1px;
-           position: relative; /* For hover effects */
-           overflow: hidden; /* For ripple effect */
+           position: relative;
+           overflow: hidden;
        }
 
 
@@ -189,7 +181,7 @@
 
 
        .start-button, .play-again-button {
-           background-color: #007bff; /* Blue */
+           background-color: #007bff;
            color: white;
            border: none;
            padding: 15px 30px;
@@ -223,7 +215,7 @@
            h1 {
                font-size: 1.8em;
            }
-           .star {
+           .question-area {
                font-size: 2.5em;
            }
            .answer-button {
@@ -244,14 +236,13 @@
 </head>
 <body>
    <div class="game-container" id="gameContainer">
-       <h1>Counting Stars! ⭐</h1>
-       <!-- Changed from score-board to wallet-board -->
+       <h1>Math Challenge! ➕➖</h1>
        <div class="wallet-board">Wallet: $<span id="wallet">0.00</span></div>
 
 
        <!-- Start Screen -->
        <div id="startScreen" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;">
-           <p style="font-size: 1.2em; text-align: center;">Help your little one learn counting and earn some dollars!</p>
+           <p style="font-size: 1.2em; text-align: center;">Let's practice your addition and subtraction skills and earn some money!</p>
            <button class="start-button" id="startButton">Start Game!</button>
        </div>
 
@@ -259,7 +250,7 @@
        <!-- Game Screen (initially hidden) -->
        <div id="gameScreen" style="display: none;">
            <div class="question-area" id="questionArea">
-               <!-- Stars will be dynamically added here -->
+               <!-- Math problem will be dynamically added here -->
            </div>
            <div class="answers-area" id="answersArea">
                <!-- Answer buttons will be dynamically added here -->
@@ -282,11 +273,10 @@
    <script>
        // Game state variables
        let wallet = 0;
-       let currentCorrectAnswer = 0;
-       const maxStars = 10; // Max number of stars for counting (can be increased later)
+       let currentCorrectAnswer = 0; // Stores the calculated correct answer
+       let roundCount = 0;
+       const totalRounds = 10; // Number of questions per game
        const numberOfChoices = 4; // Number of answer buttons
-       let roundCount = 0; // Initialize round count
-       const totalRounds = 10; // Define total rounds
 
 
        // Get DOM elements
@@ -308,7 +298,7 @@
        const winSound = new Tone.MembraneSynth().toDestination();
 
 
-       // Sound settings (simple beeps/chimes)
+       // Sound settings
        correctSound.oscillator.type = "sine";
        incorrectSound.oscillator.type = "sawtooth";
        winSound.octaves = 10;
@@ -365,7 +355,7 @@
 
 
        /**
-        * Generates a new game round: displays stars and answer choices.
+        * Generates a new game round: displays a math problem and answer choices.
         * Also manages the round count and triggers end game.
         */
        function generateRound() {
@@ -382,18 +372,33 @@
            feedbackMessage.classList.remove('show', 'correct', 'incorrect'); // Hide previous feedback
 
 
-           // Determine the number of stars for this round
-           const numberOfStars = getRandomInt(1, maxStars);
-           currentCorrectAnswer = numberOfStars; // Store the correct answer
+           let num1, num2, operator, problemText;
+           let correctAnswer;
 
 
-           // Add stars to the question area
-           for (let i = 0; i < numberOfStars; i++) {
-               const star = document.createElement('span');
-               star.className = 'star';
-               star.textContent = '⭐'; // Using a star emoji
-               questionArea.appendChild(star);
+           // Randomly choose between addition and subtraction
+           const operationType = Math.random() < 0.5 ? 'addition' : 'subtraction';
+
+
+           if (operationType === 'addition') {
+               num1 = getRandomInt(1, 10); // Numbers up to 10
+               num2 = getRandomInt(1, 10);
+               correctAnswer = num1 + num2;
+               problemText = `${num1} + ${num2} = ?`;
+           } else { // subtraction
+               // Ensure num1 is always greater than or equal to num2 for positive results
+               num1 = getRandomInt(5, 15); // Larger range for subtraction
+               num2 = getRandomInt(1, num1); // num2 must be less than or equal to num1
+               correctAnswer = num1 - num2;
+               problemText = `${num1} - ${num2} = ?`;
            }
+
+
+           currentCorrectAnswer = correctAnswer; // Store the correct answer
+
+
+           // Display the math problem
+           questionArea.textContent = problemText;
 
 
            // Generate answer choices
@@ -403,10 +408,20 @@
 
            // Add incorrect answers, ensuring they are unique and within a reasonable range
            while (answerChoices.size < numberOfChoices) {
-               let potentialAnswer = getRandomInt(1, maxStars + 3); // Slightly larger range for incorrect answers
-               // Ensure potentialAnswer is not the correct answer and not already in the set
-               if (!answerChoices.has(potentialAnswer) && Math.abs(potentialAnswer - currentCorrectAnswer) > 0) {
-                    answerChoices.add(potentialAnswer);
+               let potentialAnswer;
+               // Generate a potential answer that is close to the correct answer but not the same
+               // For a 6-year-old, keep incorrect answers relatively close.
+               let offset = getRandomInt(-3, 3); // -3 to +3 difference from correct answer
+               if (offset === 0) { // If offset is 0, make it slightly different
+                   offset = Math.random() < 0.5 ? 1 : -1;
+               }
+               potentialAnswer = correctAnswer + offset;
+               // Ensure answer is non-negative
+               potentialAnswer = Math.max(0, potentialAnswer);
+
+
+               if (!answerChoices.has(potentialAnswer)) {
+                   answerChoices.add(potentialAnswer);
                }
            }
 
@@ -440,10 +455,10 @@
 
            // Display feedback message
            if (selectedAnswer === currentCorrectAnswer) {
-               feedbackMessage.textContent = 'Correct! 🎉';
+               feedbackMessage.textContent = 'Correct! �';
                feedbackMessage.classList.add('show', 'correct');
                playCorrectSound();
-               wallet += currentCorrectAnswer; // Add money based on the number of stars counted
+               wallet += currentCorrectAnswer; // Add money based on the correct answer value
            } else {
                feedbackMessage.textContent = `Lost $${currentCorrectAnswer.toFixed(2)}! 💸`; // Indicate money lost
                feedbackMessage.classList.add('show', 'incorrect');
@@ -519,7 +534,6 @@
    </script>
 </body>
 </html>
-
-
+�
 
 
