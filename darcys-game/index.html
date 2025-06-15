@@ -3,129 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Discovery Game</title>
-    <!-- Tailwind CSS CDN -->
+    <title>Adventure Island!</title>
+    <!-- Tailwind CSS CDN for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter for a clean, friendly look -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        /* General body styling for centering and background */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f9ff; /* Light blue background */
+            background-color: #f0f9ff; /* Light blue background for a playful feel */
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: 100vh; /* Full viewport height */
             margin: 0;
             padding: 20px;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Include padding in element's total width and height */
         }
+        /* Container for the entire game interface */
         .game-container {
             width: 100%;
-            max-width: 900px;
+            max-width: 900px; /* Max width to keep it readable on large screens */
             background-color: #ffffff;
             border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+            overflow: hidden; /* Ensures rounded corners are respected */
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 30px;
-            gap: 20px;
+            gap: 20px; /* Space between elements */
         }
-        .vehicle-button {
+        /* Styling for the clickable vehicle and animal buttons */
+        .game-button { /* Renamed from vehicle-button for broader use */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background-color: #818cf8; /* Indigo-400 */
+            background-color: #818cf8; /* Indigo-400 - cheerful primary button color */
             color: white;
             padding: 15px 25px;
-            border-radius: 15px;
-            font-size: 1.25rem; /* text-xl */
+            border-radius: 15px; /* Rounded corners */
+            font-size: 1.25rem; /* text-xl in Tailwind */
             font-weight: bold;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, box-shadow 0.2s; /* Smooth hover effects */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Button shadow */
             border: none;
             outline: none;
-            width: 150px; /* Fixed width for consistency */
-            height: 120px; /* Fixed height */
-            flex-shrink: 0; /* Prevent shrinking */
+            width: 150px; /* Fixed width for consistent button size */
+            height: 120px; /* Fixed height for consistent button size */
+            flex-shrink: 0; /* Prevent buttons from shrinking on smaller screens */
         }
-        .vehicle-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+        /* Hover effect for buttons */
+        .game-button:hover {
+            transform: translateY(-5px); /* Lift effect */
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); /* Larger shadow on hover */
         }
-        .vehicle-button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        /* Active (click) effect for buttons */
+        .game-button:active {
+            transform: translateY(0); /* Press down effect */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Smaller shadow when pressed */
         }
-        .vehicle-icon {
-            font-size: 3rem; /* text-5xl */
+        /* Styling for the emojis/icons within buttons */
+        .button-icon { /* Renamed from vehicle-icon for broader use */
+            font-size: 3rem; /* text-5xl in Tailwind */
             margin-bottom: 8px;
-            line-height: 1; /* Adjust line height for icon */
+            line-height: 1; /* Adjust line height for icon to prevent extra space */
         }
+        /* Display area for the scene/background image */
         .scene-display {
             width: 100%;
-            height: 250px; /* Fixed height for the scene */
-            background-color: #e2e8f0; /* Gray-200 */
+            height: 250px; /* Fixed height for consistent scene size */
+            background-color: #e2e8f0; /* Gray-200 placeholder color */
             border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 1.5rem;
-            color: #4a5568; /* Gray-700 */
+            color: #4a5568; /* Gray-700 text color */
             text-align: center;
-            overflow: hidden; /* Ensure content stays within bounds */
-            transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out;
-            background-size: cover;
-            background-position: center;
-            position: relative; /* For overlay text */
+            overflow: hidden; /* Ensures rounded corners are respected */
+            transition: background-image 0.5s ease-in-out, background-color 0.5s ease-in-out; /* Smooth transition for scene changes */
+            background-size: cover; /* Cover the entire area */
+            background-position: center; /* Center the background image */
+            position: relative; /* Needed for positioning the overlay text */
         }
+        /* Overlay text for the scene, fades in/out */
         .scene-overlay-text {
-            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+            background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
             color: white;
             padding: 10px 20px;
             border-radius: 10px;
             font-size: 1.75rem; /* text-3xl */
             font-weight: bold;
-            position: absolute;
+            position: absolute; /* Positioned relative to .scene-display */
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: opacity 0.5s ease-in-out;
+            transform: translate(-50%, -50%); /* Center the text precisely */
+            opacity: 0; /* Hidden by default */
+            transition: opacity 0.5s ease-in-out; /* Smooth fade in/out */
         }
+        /* When .scene-display has 'active' class, show the overlay text */
         .scene-display.active .scene-overlay-text {
-            opacity: 1;
+            opacity: 1; /* Fade in */
         }
+        /* Display area for the spoken phrase */
         .phrase-display {
             width: 100%;
-            min-height: 80px;
+            min-height: 80px; /* Minimum height to prevent content jump */
             background-color: #cbd5e0; /* Gray-300 */
             border-radius: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 1.5rem; /* text-2xl */
-            color: #2d3748; /* Gray-800 */
+            color: #2d3748; /* Gray-800 text color */
             text-align: center;
             padding: 15px;
             font-weight: bold;
         }
 
-        /* Responsive adjustments */
+        /* Responsive adjustments for smaller screens (tablets and mobile) */
         @media (max-width: 768px) {
-            .vehicle-buttons-container {
-                flex-direction: column;
-                gap: 15px;
+            .buttons-container { /* Renamed for general use */
+                flex-direction: column; /* Stack buttons vertically */
+                gap: 15px; /* Adjust gap */
             }
-            .vehicle-button {
+            .game-button {
                 width: 80%; /* Make buttons wider on small screens */
-                max-width: 200px;
-                height: 100px;
+                max-width: 200px; /* Max width for stacked buttons */
+                height: 100px; /* Slightly shorter height */
             }
-            .vehicle-icon {
+            .button-icon {
                 font-size: 2.5rem; /* Slightly smaller icons */
             }
             .scene-display {
@@ -135,7 +146,7 @@
                 font-size: 1.2rem; /* Smaller text for phrases */
             }
             .game-container {
-                padding: 20px;
+                padding: 20px; /* Reduce padding on container */
             }
         }
     </style>
@@ -143,81 +154,143 @@
 <body>
     <div class="game-container">
         <h1 class="text-4xl md:text-5xl font-bold text-indigo-700 mb-6 text-center">
-            Vehicle Adventure!
+            Adventure Island! 🌴
         </h1>
 
         <div class="phrase-display" id="phrase-display">
-            Click a vehicle to start the adventure!
+            Explore vehicles and animals!
         </div>
 
         <div id="scene-display" class="scene-display">
             <span class="scene-overlay-text" id="scene-text"></span>
         </div>
 
-        <div class="flex flex-wrap justify-center gap-6 mt-6 vehicle-buttons-container">
+        <!-- Section for Vehicle Buttons -->
+        <h2 class="text-3xl font-semibold text-indigo-600 mt-4 mb-4">Vehicles 🚗✈️</h2>
+        <div class="flex flex-wrap justify-center gap-6 buttons-container">
             <!-- Car Button -->
-            <button id="car-button" class="vehicle-button">
-                <span class="vehicle-icon" role="img" aria-label="car emoji">&#128663;</span>
+            <button id="car-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="car emoji">&#128663;</span>
                 Car
             </button>
 
             <!-- Truck Button -->
-            <button id="truck-button" class="vehicle-button">
-                <span class="vehicle-icon" role="img" aria-label="truck emoji">&#128666;</span>
+            <button id="truck-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="truck emoji">&#128666;</span>
                 Truck
             </button>
 
             <!-- Airplane Button -->
-            <button id="airplane-button" class="vehicle-button">
-                <span class="vehicle-icon" role="img" aria-label="airplane emoji">&#9992;&#65039;</span>
+            <button id="airplane-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="airplane emoji">&#9992;&#65039;</span>
                 Airplane
             </button>
         </div>
 
-        <!-- Audio elements for each vehicle -->
+        <!-- Section for Animal Buttons -->
+        <h2 class="text-3xl font-semibold text-indigo-600 mt-8 mb-4">Animals 🐒🦁🦒🦘</h2>
+        <div class="flex flex-wrap justify-center gap-6 buttons-container">
+            <!-- Monkey Button -->
+            <button id="monkey-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="monkey emoji">&#128018;</span>
+                Monkey
+            </button>
+
+            <!-- Lion Button -->
+            <button id="lion-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="lion emoji">&#129409;</span>
+                Lion
+            </button>
+
+            <!-- Giraffe Button -->
+            <button id="giraffe-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="giraffe emoji">&#129280;</span>
+                Giraffe
+            </button>
+
+            <!-- Kangaroo Button -->
+            <button id="kangaroo-button" class="game-button">
+                <span class="button-icon" role="img" aria-label="kangaroo emoji">&#129432;</span>
+                Kangaroo
+            </button>
+        </div>
+
+        <!-- Audio elements for each vehicle and animal -->
+        <!-- IMPORTANT: Replace the 'src' attribute values below with the direct, raw URLs
+             to your MP3 files hosted on GitHub or another web server.
+             Example: "https://raw.githubusercontent.com/YourUsername/YourRepo/main/sounds/Car.mp3" -->
         <audio id="car-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Car.mp3" preload="auto"></audio>
         <audio id="truck-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Truck.mp3" preload="auto"></audio>
         <audio id="airplane-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Plane.mp3" preload="auto"></audio>
+        <audio id="monkey-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Monkey.mp3" preload="auto"></audio>
+        <audio id="lion-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Lion.mp3" preload="auto"></audio>
+        <audio id="giraffe-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Giraffe.mp3" preload="auto"></audio>
+        <audio id="kangaroo-audio" src="https://raw.githubusercontent.com/Showphur/showphur.github.io/main/sounds/Kangaroo.mp3" preload="auto"></audio>
 
     </div>
 
     <script>
-        // Get references to DOM elements
+        // Get references to all necessary DOM elements
         const carButton = document.getElementById('car-button');
         const truckButton = document.getElementById('truck-button');
         const airplaneButton = document.getElementById('airplane-button');
+        const monkeyButton = document.getElementById('monkey-button'); // New animal button
+        const lionButton = document.getElementById('lion-button');     // New animal button
+        const giraffeButton = document.getElementById('giraffe-button'); // New animal button
+        const kangarooButton = document.getElementById('kangaroo-button'); // New animal button
+
         const phraseDisplay = document.getElementById('phrase-display');
         const sceneDisplay = document.getElementById('scene-display');
         const sceneTextOverlay = document.getElementById('scene-text');
 
-        // Get references to audio elements
+        // Get references to all audio elements
         const carAudio = document.getElementById('car-audio');
         const truckAudio = document.getElementById('truck-audio');
         const airplaneAudio = document.getElementById('airplane-audio');
+        const monkeyAudio = document.getElementById('monkey-audio'); // New animal audio
+        const lionAudio = document.getElementById('lion-audio');     // New animal audio
+        const giraffeAudio = document.getElementById('giraffe-audio'); // New animal audio
+        const kangarooAudio = document.getElementById('kangaroo-audio'); // New animal audio
 
-        // Function to play a specific audio element
-        function playVehicleAudio(audioElement) {
-            // Stop any currently playing audio to prevent overlaps
-            if (carAudio.paused === false) carAudio.pause();
-            if (truckAudio.paused === false) truckAudio.pause();
-            if (airplaneAudio.paused === false) airplaneAudio.pause();
+        // Store all audio elements in an array for easy iteration
+        const allAudios = [carAudio, truckAudio, airplaneAudio, monkeyAudio, lionAudio, giraffeAudio, kangarooAudio];
 
-            audioElement.currentTime = 0; // Rewind to start for repeated playback
+        /**
+         * Plays a specified audio element, ensuring only one sound plays at a time.
+         * Handles potential browser autoplay restrictions by logging an error.
+         * @param {HTMLAudioElement} audioElement - The audio element to play.
+         */
+        function playSound(audioElement) {
+            // Pause all other audio elements to prevent overlapping sounds
+            allAudios.forEach(audio => {
+                if (audio && !audio.paused) { // Check if audio element exists and is playing
+                    audio.pause();
+                }
+            });
+
+            audioElement.currentTime = 0; // Rewind the audio to the beginning for consistent playback
+            // Attempt to play the audio. Use .catch to handle Promise rejection (e.g., autoplay policies).
             audioElement.play().catch(error => {
                 console.error("Audio playback failed:", error);
-                // Inform the user if autoplay is blocked (common in browsers)
+                // Provide user feedback if audio couldn't play due to browser restrictions
                 phraseDisplay.textContent = "Please click again to play sound! (Browser autoplay blocked)";
             });
         }
 
-        // Function to update the scene and phrase based on the clicked vehicle
-        function updateGame(vehicleType) {
+        /**
+         * Updates the game's phrase, scene, and plays the corresponding audio
+         * based on the button clicked.
+         * @param {string} type - The type of item clicked ('car', 'truck', 'airplane', 'monkey', etc.).
+         */
+        function updateGame(type) {
             let phrase = '';
             let sceneOverlayText = '';
             let audioToPlay;
 
-            // Set the appropriate phrase, scene background image, overlay text, and audio element
-            switch (vehicleType) {
+            // Determine the phrase, scene background image, overlay text, and audio element
+            // based on the clicked item type.
+            switch (type) {
+                // Vehicle Cases
                 case 'car':
                     phrase = "Vroom, vroom! Let's go for a ride!";
                     sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/66BB6A/FFFFFF?text=Green+Roadside")'; // Green background for car
@@ -236,47 +309,78 @@
                     sceneOverlayText = 'High in the Clouds!';
                     audioToPlay = airplaneAudio;
                     break;
+                // Animal Cases
+                case 'monkey':
+                    phrase = "Ooh-ooh-aah-aah! The monkey is swinging in the jungle!";
+                    sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/7ED321/FFFFFF?text=Lush+Green+Jungle")'; // Green jungle background
+                    sceneOverlayText = 'Jungle Fun!';
+                    audioToPlay = monkeyAudio;
+                    break;
+                case 'lion':
+                    phrase = "Roar! The mighty lion is king of the savanna!";
+                    sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/FFC107/FFFFFF?text=Golden+Savanna")'; // Golden savanna background
+                    sceneOverlayText = 'Savanna King!';
+                    audioToPlay = lionAudio;
+                    break;
+                case 'giraffe':
+                    phrase = "Munch, munch! The tall giraffe eats leaves from the highest trees!";
+                    sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/A4C639/FFFFFF?text=Sunny+African+Plains")'; // Sunny plains background
+                    sceneOverlayText = 'Tall & Grand!';
+                    audioToPlay = giraffeAudio;
+                    break;
+                case 'kangaroo':
+                    phrase = "Boing, boing! The kangaroo is hopping across Australia!";
+                    sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/FF7F50/FFFFFF?text=Red+Outback")'; // Red outback background
+                    sceneOverlayText = 'Aussie Hopper!';
+                    audioToPlay = kangarooAudio;
+                    break;
                 default:
-                    phrase = "Oops! Something went wrong.";
-                    sceneDisplay.style.backgroundImage = 'none'; // No specific image for default
-                    sceneDisplay.style.backgroundColor = '#e2e8f0'; // Default gray background
-                    sceneOverlayText = 'Choose a vehicle!';
+                    // Fallback for unexpected types
+                    phrase = "Hmm, I don't know that one. Try clicking another button!";
+                    sceneDisplay.style.backgroundImage = 'none';
+                    sceneDisplay.style.backgroundColor = '#e2e8f0';
+                    sceneOverlayText = 'Try Again!';
             }
 
-            // Update the phrase display area
+            // Update the text content of the phrase display area
             phraseDisplay.textContent = phrase;
-            // Update the text that overlays the scene
+            // Update the text content of the scene overlay
             sceneTextOverlay.textContent = sceneOverlayText;
 
-            // Add 'active' class to trigger the opacity transition for the overlay text
+            // Add the 'active' class to trigger the CSS transition for the overlay text
             sceneDisplay.classList.add('active');
-            // Remove 'active' class after a short delay to hide the overlay text
+            // After a short delay, remove the 'active' class to fade out the overlay text
             setTimeout(() => {
                 sceneDisplay.classList.remove('active');
             }, 1500); // Overlay text remains visible for 1.5 seconds
 
-            // Play the corresponding audio if an element is assigned
+            // If an audio element was assigned, play it
             if (audioToPlay) {
-                playVehicleAudio(audioToPlay);
+                playSound(audioToPlay);
             }
         }
 
-        // Add event listeners to each vehicle button to call updateGame when clicked
+        // Attach event listeners to all vehicle and animal buttons
         carButton.addEventListener('click', () => updateGame('car'));
         truckButton.addEventListener('click', () => updateGame('truck'));
         airplaneButton.addEventListener('click', () => updateGame('airplane'));
+        monkeyButton.addEventListener('click', () => updateGame('monkey'));
+        lionButton.addEventListener('click', () => updateGame('lion'));
+        giraffeButton.addEventListener('click', () => updateGame('giraffe'));
+        kangarooButton.addEventListener('click', () => updateGame('kangaroo'));
 
-        // Set the initial state when the web page loads
+        // Set the initial state of the game when the page finishes loading
         document.addEventListener('DOMContentLoaded', () => {
-            phraseDisplay.textContent = "Click a vehicle to start the adventure!";
-            sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/a78bfa/FFFFFF?text=Choose+Your+Vehicle")'; // Initial welcoming scene
-            sceneTextOverlay.textContent = 'Welcome!';
+            phraseDisplay.textContent = "Welcome to Adventure Island! Click a button to start!";
+            // Initial placeholder background image for the scene
+            sceneDisplay.style.backgroundImage = 'url("https://placehold.co/900x250/a78bfa/FFFFFF?text=Let+the+Adventure+Begin!")';
+            sceneTextOverlay.textContent = 'Ready for Adventure?';
             sceneDisplay.classList.add('active'); // Show initial welcome text immediately
+            // Hide the welcome text after a short duration
             setTimeout(() => {
                 sceneDisplay.classList.remove('active');
-            }, 2000); // Hide welcome text after 2 seconds
+            }, 2000); // Welcome text fades out after 2 seconds
         });
     </script>
 </body>
 </html>
-
